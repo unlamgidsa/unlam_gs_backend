@@ -1,0 +1,55 @@
+{% extends "base.html" %} 
+{% block content %}
+{% load static %}
+<h1>Pasadas  (Satellite: {{satellite.code}}  , Sitio: {{sitio.name}} ) </h1>
+
+<form method='GET' action=''> 
+	<div class="breadcrumbs">
+	    Satellite: 
+	    <select id="tbsatellite" name='tbsatellite'>
+			{% for s in sat_list %}
+		   		<option value="{{s.pk}}"
+		       		{% if s.pk == current_sat_id %}selected="selected"{% endif %}>
+		       		{{s.code|capfirst}}
+		   		</option>
+		  	{% endfor %}
+		</select>
+	
+	    Site: 
+	    <select name="tbsitio">
+	    	{% for s in site_list %}
+	    		<option value="{{s.pk}}"
+		       		{% if s.pk == current_site_id %}selected="selected"{% endif %}>
+		       		{{s.name|capfirst}}
+		   		</option>
+			{% endfor %}
+	    </select>
+	    From: <input type="date" value='{{request.GET.tbdesde}}' name='tbdesde'/>
+	    To: <input type="date" value='{{request.GET.tbhasta}}' name='tbhasta'/>
+		<input type="submit" value="Process" name="action" />
+    </div>
+    
+</form>
+<!--  <h1> Satellite: {{tbsatellite}}  , Sitio: {{tbsitio}} </h1> --> 
+<div class="table-responsive">
+ <table class="table table-striped table-bordered table-condensed" width="100%">
+  <tr>
+  	<th>Pass id</th>
+    <th>Start Time [UTC]</th>
+    <th>Stop Time [UTC]</th> 
+    <th>Duration [min]</th>
+   <!-- <th>TLE</th> --> 
+   </tr>
+  {% for p in pasada_list %}
+  <tr>
+  	<td>{{p.pk}}</td>
+    <td>{{p.getStartTimeStr}}</td>
+    <td>{{p.getStopTimeStr}}</td> 
+    <td>{{p.getDurationStr}}</td>
+   <!--	<td>Descargar TLE</td> --> 
+   </tr>
+  {% endfor %}
+</table>
+
+
+{% endblock %}

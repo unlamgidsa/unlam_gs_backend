@@ -1,0 +1,29 @@
+{% extends "main.html" %}
+{% block content %}
+    <h1>Satellites</h1>
+
+ <div class="table-responsive">
+ <table class="table table-striped table-bordered table-condensed">
+  <tr>
+    <th>Code</th>
+    <th>Description</th> 
+    <th>NoradId</th>
+    <th>State</th>
+    <th>Active</th>
+    <th>Seleccinar</th>
+  </tr>
+  {% for sat in satellites %}
+  <tr>
+    <td>{{sat.code}}</td>
+    <td>{{sat.description}}</td> 
+    <td>{{sat.noradId}}</td>
+    <td>{{sat.state}}</td>
+    <td>{{sat.active}}</td>
+    <td></td>
+  </tr>
+  {% endfor %}
+</table>
+<a href="{% url 'post_Sat' %}">Save Satellite</a>
+</div>
+{% endblock %}
+

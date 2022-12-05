@@ -1,0 +1,87 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+{% load groundsegment_tags %}
+<meta http-equiv="refresh" content="30">  
+<h1>Historico simple</h1>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(load_page_data);
+    
+    
+    function load_page_data(){
+        $.ajax({
+            url: '/ajax/getchartdata/',
+            type: 'get',
+            //Son los ultimos 50, no necesita parametros data: {'startdate':startdate,'enddate':enddate},
+            async: false,
+            success: function(data){
+                if(data){
+                    chart_data = $.parseJSON(data);
+                    drawChart(chart_data, "My Chart", "Data");
+                }
+            },
+        });
+    }
+
+    function drawChart(chart_data, chart1_main_title, chart1_vaxis_title) {
+        var chart1_data = new google.visualization.DataTable(chart_data);
+        var chart1_options = {
+            title: chart1_main_title,
+            vAxis: {title: chart1_vaxis_title,  titleTextStyle: {color: 'red'}}
+        };
+
+        var chart1_chart = new google.visualization.BarChart(document.getElementById('chart1_div'));
+        chart1_chart.draw(chart1_data, chart1_options);
+    }
+    
+</script>
+
+<table style="width:100%">
+<tr>
+{% for chart in charts %}
+  <td>
+  {{ chart.as_html }}
+  </td>
+  {% if not forloop.counter|mod:2 %}
+    </tr><tr>
+  {% endif %}
+{% endfor %}
+</tr>
+</table>
+
+
+
+
+<!--  
+
+down vote
+accepted
+you can use the forloop.counter and do something like:
+
+<table>
+    <tr>
+		{% for person in people %}
+		        <td>{{ person }}</td>
+		    {% if not forloop.last and forloop.counter == 3 or forloop.counter == 6 %}
+		    </tr>
+		    <tr>
+		    {% endif %}
+		{% endfor %}
+    </tr>
+  <tr>
+    <td>{{ chart1.as_html }}</td>
+    <td>{{ chart2.as_html }}</td> 
+  </tr>
+   <tr>
+    <td>{{ chart3.as_html }}</td>
+    <td>{{ chart4.as_html }}</td> 
+  </tr>
+  
+-->
+
+ 
+ {% endblock %}

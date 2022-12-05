@@ -1,0 +1,109 @@
+#En UNLAM
+source /home/psoligo/.local/share/virtualenvs/GroundSegment-UYr3VdiI/bin/activate
+python /home/psoligo/git/GroundSegment/GroundSegment/manage.py runserver 0.0.0.0:8000
+python /home/psoligo/git/GroundSegment/GroundSegment/Scripts/ManualExecuteTask.py
+
+#pc
+source /home/pablo/.local/share/virtualenvs/GroundSegment-P2spt5oE/bin/activate
+python /home/pablo/git/GroundSegment/GroundSegment/manage.py runserver 0.0.0.0:8000
+python /home/pablo/git/GroundSegment/GroundSegment/Scripts/ManualExecuteTask.py
+
+#pc windows
+python "C:\Users\pabli\git\GroundSegment\GroundSegment\Scripts\ManualExecuteTask.py" --apiurl "http://127.0.0.1:8000/TlmyRawData/" --user sa --password ???? --sats 40014 --days 1 
+
+
+#Produccion
+source /home/psoligo/VENVS/PROD/bin/activate
+
+
+#Con pipenv shell, mejorar todo esto
+#Antes de llamar a gunicorn aplicar siempre el: python manage.py migrate
+cd /home/psoligo/VENVS/PROD; pipenv shell /home/psoligo/VENVS/PROD; 
+cd /home/psoligo/www/GROUNDSEGMENT;
+gunicorn --workers=4 --bind 0.0.0.0:9999 wsgi:application
+
+
+#Con pipenv
+cd /home/psoligo/VENVS/PROD; pipenv shell /home/psoligo/VENVS/PROD; 
+cd /home/psoligo/www/GROUNDSEGMENT;
+python ./Scripts/ManualExecuteTask.py
+
+
+#Configuracion nginx
+sudo ln -s /home/psoligo/www/GROUNDSEGMENT/nginx.conf /etc/nginx/sites-enabled/unlamgroundsegment.org
+sudo /etc/init.d/nginx restart
+run python /home/psoligo/www/GROUNDSEGMENT/manage.py collectstatic
+
+Ahora hay una version de produccion aca!!!
+http://127.0.0.1:12120/admin
+
+
+""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""Aplicacion de CELERY"""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""
+
+cd /home/psoligo/VENVS/PROD; pipenv shell /home/psoligo/VENVS/PROD; 
+Prod: cd /home/psoligo/www/GROUNDSEGMENT;
+Dev : cd /home/psoligo/git/GroundSegment/GroundSegment
+
+--Pipenv--
+cd /home/psoligo/git/GroundSegment/GroundSegment/;
+pipenv shell;
+celery -A GroundSegment  worker -c=4 -l info; 
+
+
+cd /home/psoligo/git/GroundSegment/GroundSegment/;
+pipenv shell;
+celery -A GroundSegment flower --port=23355
+celery -A GroundSegment purge
+celery -A GroundSegment beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""
+
+
+#Documentacion de base de datos
+sudo java -jar schemaspy-6.0.0.jar
+sudo java -jar schemaspy.jar -t mssql05 -dp C:/sqljdbc4-3.0.jar -db DATABASE -host SERVER -port 1433 -s dbo -u USER -p PASSWORD -o DIRECTORY
+sudo java -jar schemaspy.jar -configFile path/to/config.file
+
+#Documentacion UML
+python manage.py graph_models -a -o test.png
+python manage.py graph_models -a -I TlmyVar,TlmyVarType,TlmyPrediction,PredictionType,Calibration --exclude-columns excludecolumns.txt --layout=circo --disable-sort-fields -o /home/pablo/sources/phddocuments/CACIC2019/Imgs/UML_Tlmy.png
+
+#Layouts=circo dot fdp neato nop nop1 nop2 twopi
+#tablespaces
+El problema de los permisos se resolvio con este foro
+https://stackoverflow.com/questions/40918782/how-do-i-get-a-postgresql-tablespace-on-a-second-installed-hard-drive
+Concretamente:
+sudo chown postgres:postgres /media/psoligo/SSD
+sudo chown postgres:postgres /media/psoligo/SSD/ts
+sudo chmod a+x /media/psoligo
+
+
+
+
+CREATE TABLESPACE "IndexSSD"
+  OWNER postgres
+  LOCATION '/media/psoligo/SSD/ts/IndexSSD';
+  
+  
+#Ejecucion uwsgi UNLAM
+uwsgi --http :8000 --processes 4 --threads 2 --chdir /home/psoligo/git/GroundSegment/GroundSegment --wsgi-file /home/psoligo/git/GroundSegment/GroundSegment/wsgi.py
+#Ejecucion uwsgi Home
+uwsgi --http :8000 --processes 4 --threads 2 --chdir /home/pablo/git/GroundSegment/GroundSegment --wsgi-file /home/pablo/git/GroundSegment/GroundSegment/wsgi.py
+
+
+#uwsgi --master --http :8000 --module wsgi.py
+
+
+#Despues de pipenv shell, todo celery!
+#Instalar redis directamente en maquina o con un docker puerto 6379
+source /home/pablo/.local/share/virtualenvs/GroundSegment-P2spt5oE/bin/activate
+cd /home/pablo/git/GroundSegment/GroundSegment
+celery -A GroundSegment  worker -c=1 -l info &
+celery -A GroundSegment beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler & 
+celery -A GroundSegment flower --port=23355
+
+pip freeze > /home/pablo/git/GroundSegment/GroundSegment/requirements.txt
+
+#HAMACHI->logmy in

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>WebSocket local test</title>
+</head>
+<body>
+	<h1>WebSocket local test</h1>
+	<script type="text/javascript">
+		//console.log(window.location.host)
+
+		const roomName = 77
+		let url =  'ws://127.0.0.1:8000/ws/RTTelemetry/';
+		const tlmySocket = new WebSocket(url)
+		tlmySocket.onmessage = function(e){
+			let data = JSON.parse(e.data);
+			console.log(data);
+		}
+
+		tlmySocket.onerror = function(e){
+			console.log("Error", e);
+		}
+
+		tlmySocket.onopen = function(e){
+			console.log("on open");
+		}
+
+		tlmySocket.onclose = function(e){
+			console.log("on close");
+
+		}
+		
+	</script>
+</body>
+
+</html>

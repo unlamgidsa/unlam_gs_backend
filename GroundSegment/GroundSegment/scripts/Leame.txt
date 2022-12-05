@@ -1,0 +1,21 @@
+La carpeta se llama scripts porque asi lo exije django extensions. Todos los scripts (que requieran django) a partir de ahora
+la idea es correrlos bajo el sistema de django-extensions, ej:
+
+ python manage.py runscript -v3 SignalsAddTlmyVar
+
+ Note que el script debe tener un metodo run y la carpeta scripts debe tener un __init__.
+
+ Como informacion adicional en visual studio code el launch code es el siguiente, 
+        {
+            "name": "Django-Script-(django extensions)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/GroundSegment/manage.py",
+            "args": [
+                "runscript",
+                "-v3",
+                "${fileBasenameNoExtension}",
+                "--traceback"
+            ],             
+            "django": true                       
+        },

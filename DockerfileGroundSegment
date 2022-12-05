@@ -1,0 +1,83 @@
+#
+FROM python:3.6
+MAINTAINER PSOLIGO
+#instalo uwsgi y nginx
+RUN apt-get update && \
+    apt-get install -y && \
+    pip3 install uwsgi && \
+    apt-get install nginx -y
+
+
+
+#copio el backend a la carpeta opt/app
+COPY ./ /opt/app
+
+#copio el frontend (UNLAM openmct) a la carpeta de nginx
+#Para generar version de distribucion usar comando: npm run build:prod
+COPY dist /usr/share/nginx/html
+
+#Instalo los paquetes necesarios para el backend, 
+#Esto requiere ser depurado, no todos los paquetes se usan
+RUN pip3 install -r /opt/app/GroundSegment/requirements.txt
+
+#Genero los archivos estaticos estilos y demas
+RUN python /opt/app/GroundSegment/manage.py collectstatic --no-input;
+
+#Instalo un editor de texto para ajustes menores
+#durante la creacion de la imagen
+RUN apt-get install vim -y
+
+
+#Variables de entorno para poder tomar decisiones en 
+#settings.py
+
+ENV DJANGO_ENV=prod
+ENV DOCKER_CONTAINER=1
+
+ENV DBNAME=DBGS_DEVE
+ENV DBHOST=172.17.0.3
+ENV DBPORT=5432
+ENV DBUSER=postgres
+ENV DBPASS=postgres
+
+#Puertos
+#backend django sobre uwsgi
+EXPOSE 8000 
+#backend django publicado en nginx
+EXPOSE 8001 
+#openmct?
+EXPOSE 8002 
+
+
+
+#copio archivo de configuracion sitio nginx
+COPY ./groundsegment_nginx.conf /etc/nginx/sites-available/
+#Habilito el sitio generando un enlace al archivo anterior en sites-enabled
+RUN ln -s /etc/nginx/sites-available/groundsegment_nginx.conf /etc/nginx/sites-enabled/groundsegment_nginx.conf
+
+
+
+#PENDIENTES
+#Es necesario instalar/arrancar celery beats para tareas programadas
+#Incorporar y publicar openmct
+
+#Sobrescribro, el archivo ya fue copiado
+ADD ./GroundSegment/docker_init.sh /opt/app/GroundSegment/
+
+RUN chmod +x /opt/app/GroundSegment/docker_init.sh
+CMD ["/opt/app/GroundSegment/docker_init.sh"]
+
+#----------------Ejemplo de ejecucion parametrizada-----------------------#
+# docker run -p 127.0.0.1:8000:8000/tcp -p 127.0.0.1:8001:8001/tcp -e DBNAME='DBGS_DEVE' -e DBHOST='172.17.0.3' --name gs groundsegment
+#-------------------------------------------------------------------------#
+
+#--------------------Comandos utiles y pruebas----------------------------#
+#CMD ["uwsgi", "--ini", "/opt/app/GroundSegment/uwsgi.ini"]
+#CMD ["/etc/init.d/nginx", "restart"]
+#ENTRYPOINT uwsgi --ini /opt/app/GroundSegment/uwsgi.ini
+#ENTRYPOINT /etc/init.d/nginx restart
+#RUN chown -R www-data:www-data /GroundSegment
+#docker run -p 127.0.0.1:8000:8000/tcp -p 127.0.0.1:8001:8001/tcp --name gs groundsegment
+#docker run -p 127.0.0.1:8001:8001/tcp -p 127.0.0.1:8002:8002 -e DBNAME='DBGS_DEVE' -e DBHOST='172.17.0.3' --name gs groundsegment
+#sudo ln -s /etc/nginx/sites-available/groundsegment_nginx.conf /etc/nginx/sites-enabled/groundsegment_nginx.conf
+#------------------------------------------------------------------------#

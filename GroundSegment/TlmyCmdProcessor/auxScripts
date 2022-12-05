@@ -1,0 +1,160 @@
+import socket
+from struct import unpack, pack
+import crcmod
+from binascii import hexlify, unhexlify
+
+pkt2 = A8 A4 B0 AA AC 40 60 40 40 40 40 40 40 E1 03 F0 02 03 83 A5
+cmd0202 = A8 A4 B0 AA AC 40 60 40 40 40 40 40 40 E1 03 F0 02 02 0A B4
+
+cmd0202 = unhexlify('56A8A4B0AAAC4060404040404040E103F002020AB4')
+
+
+#pkt = b'\x56'+pack('>I', ilen)+asource+destination+control+protocol+pack('BB', 2, 2 )+pcrc 
+
+pkt = b'\x07\x00\x00\x00\x02\x02'
+ilen = len(pkt)+2
+header = b'\x56'
+
+crcX25.update(pack('>I', ilen)+pkt)
+pcrc = 
+
+
+
+
+unhexlify('C0000202C0')
+
+framecommand    = unhexlify('56')
+destination 	= unhexlify('98828440404000')
+asource 	= unhexlify('888aac9692a800')
+control 	= unhexlify('03')
+protocol 	= unhexlify('f0')
+#varoffset  	= 16 - pkt = b'\x56'+pack('>I', ilen)+asource+destination+control+protocol+pack('BB', 2, 2 )+pcrc     
+
+prepack = asource+destination+control+protocol+unhexlify('0202')
+ilen = len(prepack)
+
+#Cuidado con esta mierda del little endian y big endian
+prepackpluslen = pack('<I', ilen)+prepack
+
+crcX25 = crcmod.predefined.Crc('x-25')
+crcX25.update(prepackpluslen)
+
+pkcrc = prepackpluslen+ pack('<H', crcX25.crcValue)
+finalpacket = framecommand+pkcrc
+
+s.close()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect( ('127.0.0.1', 3210) )
+chunk = s.recv(1024)
+s.send(b'\x56\x07\x00\x00\x00\x02\x02')
+#s.send(finalpacket)
+
+pkt2 = unhexlify('A8A4B0AAAC4060404040404040E103F0020383A5')
+pkt2 = b'\x56'+unhexlify('A8A4B0AAAC4060404040404040E103F0020383A5')+b'\x56'
+s.send(pkt2)
+
+s.close()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect( ('127.0.0.1', 3210) )
+#chunk = s.recv(1024)
+minpack = unhexlify('860202')
+s.send(minpack)
+
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
+VIEJO CODIGO DE TEST
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
+#dl.processed = True                   
+                                    """
+                                    Ahora proceso los datos en funcion de las variables de telemetria configuradas en el sistema. 
+                                    Las mismas ya tienen internamente sus funciones de calibracion segun configuracion
+                                    """
+                                    
+                                    """
+                                    Recorro todas los tipos de variable de telemetria, las busco en la posicion en la trama, 
+                                    y actualizo su valor, la clase TlmyVarType internamente se encarga de todo, la transformacion en variable
+                                    de ingenieria y la persistencia en tiempo real e historica
+                                    """
+                                    """
+                                    
+                                    """
+                                    """
+                                    <sequence_number position="1" type="short" xmlns="" name="packetNumber"/>
+                                    <number position="3" type="int" xmlns="" name="OBCUpTime"/>
+                                    <number position="7" type="char" xmlns="" name="commandCounter"/>
+                                    """
+    #                                 packetNumber    = chunk[1-2] "pack"
+    #                                 OBCUpTime       = chunk[1,2,3,4]
+    #                                 commandCounter  = chunk[7]
+                                    #print("Send harcode command")
+                                    
+                                    #header =  b'\x56\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0'
+                                    #pkt = b'\x56\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0\x17\x00\x00\x00\x02\x02'
+                                    #sentbytes = s.send(pkt)
+                                    
+                                    
+                                    """
+                                    ATENCION 1: el checksum es CRC_16_X_25 (http://www.sunshine2k.de/coding/javascript/crc/crc_js.html) y para el ejemplo
+                                    :pkt = b'\x56\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0\x17\x00\x00\x00\x02\x02'
+                                    '              A8  A4  B0  AA  AC  40  60  40  40  40  40  40  40  E1  03  F0  02 02 0A B4'
+                                    A8  A4  B0  AA  AC  40  60  40  40  40  40  40  40  E1  03  F0  02 02
+                                    se debe calcular desde xA8, se debe excluir el flag de inicio y fin.
+                                    ATENCION 2: el checksum es de 16 bits y los bytes estan invertidos!!!
+                                    
+                                    x-25    0x11021    True    0x0000    0xFFFF    0x906E
+                                    
+                                    Esto ha sido probado y funciona correctamente, lo retornado por 
+                                    crcX25.hexdigest() debe ser dado vuelta
+                                    
+                                    crcX25 = crcmod.predefined.Crc('x-25')
+                                    s = unhexlify('A8A4B0AAAC4060404040404040E103F00202')
+                                    crcX25.update(s)
+                                    crcX25.hexdigest()
+                                    """
+                                    
+                                    
+                                    #Aca esta la posta: https://www.qb50.eu/index.php/tech-docs/category/16-archive?download=19:scs-docs
+                                    #1- 7 bytes - Destination Callsign
+                                    #2- 7 bytes - Source Callsign
+                                    #3- 2 bytes - Control Bytes
+                                    #4- Variable - Data bytes (Data sent by the OBC)
+                                    #5- 2 bytes - FCS (AX25 CRC)
+                                    """
+                                    destination  = ax25[0:7]
+                                    asource      = ax25[7:7+7]
+                                    control      = ax25[7+7:7+7+1]
+                                    protocol     = ax25[7+7+1:7+7+1+1]
+                                    vardataoffset = 7+7+1+1
+                                    payload = ax25[ vardataoffset: ]
+                                    """
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    #pkt = b'\x56'+pack('>I', ilen)+asource+destination+control+protocol+pack('BB', 2, 2 )+pcrc     
+                                    
+                                    
+                                    #sentbytes = s.send(pkt)
+                                    
+                                    #Este calcula el CRC-CCITT (XModem)
+                                    #__showAsHex(pack('H', binascii.crc_hqx(b'\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0\x02\x02', 0)))
+                                    #Este calcula CRC 16 pelado
+                                    #__showAsHex(pack('H', binascii.crc_hqx(b'\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0\x02\x02', 0)))
+                                    #'A8 A4 B0 AA AC 40 60 40 40 40 40 40 40 E1 03 F0 02 02 0A B4'
+                                    #sentbytes = s.send(b'\x56\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0\x02\x02')
+                                    #ISO 3309 (HDLC) Recommendations
+                                    #https://www.tapr.org/pdf/AX25.2.2.pdf
+                                    #Este guacho no rompe la conexion
+                                    #sentbytes = s.send(b'\x56\x07\x00\x00\x00\x02\x02')
+                                    
+                                    
+                                    #pkt = b'\x56\xA8\xA4\xB0\xAA\xAC\x40\x60\x40\x40\x40\x40\x40\x40\xE1\x03\xF0\x02\x02'
+                                    #sentbytes = s.send(pkt)
+                                    #sentbytes = s.send(pack('BIBB', 56, 3, 2, 2 ))
+                                    
+                                    
+                                    
+                                    print("hardcode command, bytes sent :", sentbytes )

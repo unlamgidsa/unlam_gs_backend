@@ -1,0 +1,37 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+django = "2.2"
+celery = "*"
+django-celery-beat = "*"
+djangorestframework = "==3.8.2"
+ephem = "*"
+requests = "*"
+sgp4 = "*"
+django-extensions = "*"
+django-cors-headers = "*"
+channels = "*"
+django-celery-results = "*"
+django-celerybeat-status = "*"
+numpy = "*"
+django-braces = "*"
+redis = "*"
+flower = "*"
+gunicorn = "*"
+uwsgi = "*"
+channels-redis = "*"
+psycopg2-binary = "*"
+pyinotify = "*"
+pandas = "*"
+matplotlib = "*"
+sklearn = "*"
+install = "*"
+pydotplus = "*"
+
+[requires]
+python_version = "3.6"

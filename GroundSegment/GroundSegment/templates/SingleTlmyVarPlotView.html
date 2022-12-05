@@ -1,0 +1,31 @@
+{% extends "main.html" %} 
+{% block content %}
+{% load static %}
+<h1>Telemetry var  (Satellite: {{satellite.code}} ) </h1>
+
+
+<form method='GET' action=''>
+	<div class="breadcrumbs">
+	    Telemetry var: 
+	    <select id="tbtelemetryvar" name='tbtelemetryvar'>
+			{% for tvt in telemetryVarTypes %}
+		   		<option value="{{tvt.pk}}"
+		       		{% if tvt.pk == current_tvt_id %}selected="selected"{% endif %}>
+		       		{{tvt.code|capfirst}}
+		   		</option>
+		  	{% endfor %}
+		</select>
+	    
+	    From: <input type="datetime-local" value='{{request.GET.tbdesde}}' name='tbdesde'/>
+	    To: <input type="datetime-local" value='{{request.GET.tbhasta}}' name='tbhasta'/>
+	    <input type="submit" name="submit" value="Process"/>	    
+	   <!--  <h1> <input type="submit" name="descargar" value="Descargar"/> </h1> --> 
+    </div>              
+    
+</form>
+<!--  <h1> Satellite: {{tbsatellite}} </h1> --> 
+<div class="table-responsive">
+ <img src="data:image/png;base64,{{plot|safe}}" width="60%">
+</div>
+{% endblock %}
+

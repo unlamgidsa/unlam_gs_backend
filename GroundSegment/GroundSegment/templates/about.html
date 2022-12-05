@@ -1,0 +1,48 @@
+{% extends "base.html" %} 
+{% block content %}
+{% load staticfiles %}
+
+
+<h1><strong>MDIAE-Segmento Terreno</strong></h1>
+<div>
+<table>
+	<tbody>
+		<tr>
+		
+			<!--  <th><img src="{% static "/GroundSegment/Soligo.jpg" %}" alt="Soligo" height="64" width="64"/></th> -->
+			<th><img src="{% static "Soligo.jpg" %}" alt="Soligo" height="64" width="64"/></th>
+			
+			<th>Pablo Soligo</th>
+			<th>Ingeniero de sistema</th>
+		</tr>
+		<tr>
+			<th><img src="{% static "Zapata.jpg" %}" alt="Zapata" height="64" width="64"/></th>
+			<th>Elbio Zapata</th>
+			<th>Control Unit</th>
+		</tr>
+		<tr>
+			<th><img src="{% static "Valenti.jpg" %}" alt="Valenti" height="64" width="64"/></th>
+			<th>Maria Cecilia Valenti</th>
+			<th>Orbits Dynamics</th>
+		</tr>
+		<tr>
+			<th><img src="{% static "Barbieri.jpg" %}" alt="Barbieri" height="64" width="64"/></th>
+			<th>Ricardo Barbieri</th>
+			<th>Mission Unit</th>
+		</tr>
+		<tr>
+			<th><img src="{% static "Robin.jpg" %}" alt="Robin" height="64" width="64"/></th>
+			<th>Jose Robin</th>
+			<th>Ground Station</th>
+		</tr>
+		<tr>
+			<th><img src="{% static "montilla.jpg" %}" alt="Robin" height="64" width="64"/></th>
+			<th>Alfonso Montilla</th>
+			<th>Colaboración especial y revisión</th>
+		</tr>
+		
+	</tbody>
+</table>
+</div>
+
+{% endblock %}

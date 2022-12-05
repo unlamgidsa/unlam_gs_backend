@@ -1,0 +1,25 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+*.pyc
+/access.log
+/error.log
+dist/
+.venv
+.vscode
+### Local History for Visual Studio Code
+.history/
+
+### Built Visual Studio Code Extensions
+*.vsix
+.vscode/launch.json
+.vscode/settings.json
+GroundSegment.code-workspace
+
+# Other
+config.py
+GroundSegment/.project
+GroundSegment/.settings/.gitignore
+GroundSegment/.settings/org.eclipse.core.resources.prefs
+GroundSegment/.vs/GroundSegment/v15/.suo

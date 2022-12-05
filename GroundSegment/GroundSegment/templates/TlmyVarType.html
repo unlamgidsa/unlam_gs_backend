@@ -1,0 +1,26 @@
+{% extends "main.html"%} 
+{% block content %}
+
+<h1>Variables de &nbsp;Telemetría</h1>
+<div class="table-responsive">
+	<table class="table table-striped table-bordered table-condensed">
+ 	 	<tr>
+    		<th>Descripcion</th>
+    		<th>Codigo</th> 
+    		<th>Satelite</th>
+    		<th>Valor Variable</th>
+    		<th>Ultima Actualizacion</th>
+  	 	</tr>
+  		{% for sat in TlmyVarTypes %}
+  		<tr>
+    		<td>{{sat.description}}</td>
+    		<td>{{sat.code}}</td> 
+    		<td>{{sat.satellite}}</td>
+    		<td>{{sat.frameType}}</td>
+    		<td>{{sat.lastUpdate}}</td>
+    	</tr>
+  	{% endfor %}
+	</table>
+</div>	
+<p>{% endblock %}</p>
+

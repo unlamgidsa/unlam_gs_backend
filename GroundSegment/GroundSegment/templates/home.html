@@ -1,0 +1,50 @@
+{% extends 'base2.html' %}
+ 
+{% block content %}
+
+        <table>
+            <tr>
+                <td>{{ user.username.label_tag }}</td>
+                <td>{{ user.username }}</td>
+            </tr>
+     
+            <tr>
+                <td>{{ user.email.label_tag }}</td>
+                <td>{{ user.email }}</td>
+            </tr>
+     
+            <tr>
+                <td>{{ user.first_name.label_tag }}</td>
+                <td>{{ user.first_name }}</td>
+            </tr>
+     
+            <tr>
+                <td>{{ user.last_name.label_tag }}</td>
+                <td>{{ user.last_name }}</td>
+            </tr>
+     
+            <tr>
+                <td>{{ user.date_joined.label_tag }}</td>
+                <td>{{ user.date_joined }}</td>
+            </tr>
+     
+            <tr>
+                <td>{{ user.last_login.label_tag }}</td>
+                <td>{{ user.last_login }}</td>
+            </tr>
+
+            <tr>
+                <td>PERMISOS</td>
+                <td>{{ perms.foo }}</td>
+            </tr>
+     
+        </table>
+
+        {% if perms.TlmyVarType %}
+             <p>Usted tiene permiso para editar {{perms.add_tlmyvartype}}</p>
+        {% else %}
+             <h2>Usted  no tiene permiso</h2>
+        {% endif %}
+
+ 
+{% endblock %}

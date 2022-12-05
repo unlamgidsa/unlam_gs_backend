@@ -1,0 +1,32 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- bloque de contenido para el título-->
+    <title>{% block title %}GS-MDIAE{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/blog.css' %}">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+</head>
+<body>
+    <div id="header">
+        <!-- bloque de contenido para el menú-->
+        {% block header %}
+           {% include 'nav.html' %}
+        {% endblock %}
+    </div>
+    <div class="container">
+        <!-- bloque de contenido para el contenido de la página-->
+      <div class="row-fluid">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </div>
+    
+    <footer class="footer">
+        <!-- bloque de contenido para el footer-->
+        {% block footer %}{% endblock %}
+    </footer>
+</body>
+</html>

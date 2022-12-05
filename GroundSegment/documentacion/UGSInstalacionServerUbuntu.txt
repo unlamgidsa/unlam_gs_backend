@@ -1,0 +1,154 @@
+Instalacion entorno produccion(https://github.com/mitchtabian/HOWTO-django-channels-daphne)
+.Se creo ubuntu limpio y se instalo guess additions
+.Se ejecuto para verificar ademas que el copy/paste bidireccional funciona
+=>sudo apt update
+.Se ejecuto sin problemas
+=>sudo apt install python3-pip python3-dev libpq-dev postgresql postgresql-contrib nginx curl
+.Ejecuto para poder acceder y compartir en la carpeta compartida de la virtual
+=>sudo adduser pablo vboxsf (requiere reinicio)
+--------------Postgres-----------------------------
+.Se ejecuto sin problemas
+sudo -u postgres psql
+CREATE DATABASE DBGS_DEV;
+CREATE USER diit WITH PASSWORD config.DB_PASSWORD;
+ALTER ROLE diit SET client_encoding TO 'utf8';
+ALTER ROLE diit SET default_transaction_isolation TO 'read committed';
+ALTER ROLE diit SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE DBGS_DEV TO diit;
+\q
+---------------------------------------------------
+.Se ejecuto
+=>sudo -H pip3 install --upgrade pip
+=>sudo -H pip3 install virtualenv
+=>sudo apt install git-all
+=>sudo apt install libgl1-mesa-glx //Resolve cv2 issue
+---------------------------------------------------
+=>mkdir ugs
+=>cd ugs
+=>virtualenv venv
+=>source venv/bin/activate
+=>git clone https://gitlab.com/PabloSoligo2014/GroundSegment.git
+=>pip install -r requirements.txt
+=>pip install gunicorn psycopg2-binary
+=>pip install python-decouple
+//cd /media/sf_GroundSegment/ python manage.py runserver 0.0.0.0:8000 --nothreading --noreload
+//python ./GroundSegment/GroundSegment/manage.py runserver 0.0.0.0:8000
+sudo apt-get install gunicorn
+//Solo para testear que esta funcionando
+=>gunicorn --bind 0.0.0.0:8000 wsgi:application
+//Ahora hacerlo como servicio
+//guardar un archivo gunicorn.socket en /etc/systemd/system/ (llamar a gedit como sudo)
+--------------------
+[Unit]
+Description=gunicorn socket
+[Socket]
+ListenStream=/run/gunicorn.sock
+[Install]
+WantedBy=sockets.target
+---------------------
+//guardar un archivo gunicorn.service en /etc/systemd/system/ (llamar a gedit como sudo)
+---------------------
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=pablo
+Group=www-data
+WorkingDirectory=/home/pablo/ugs/GroundSegment/GroundSegment/
+ExecStart= /home/pablo/ugs/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/run/gunicorn.sock \
+          wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+---------------------
+
+sudo systemctl start gunicorn.socket
+sudo systemctl enable gunicorn.socket
+
+Otros comandos utilesHelpful Commands
+-------------------------------------
+    sudo systemctl daemon-reload
+    Must be executed if you change the gunicorn.service file.
+    sudo systemctl restart gunicorn
+    If you change code on your server you must execute this to see the changes take place.
+    sudo systemctl status gunicorn
+    sudo shutdown -r now
+    restart the server
+
+Ahora nginx
+-----------
+Se agrega archivo GroundSegment en /etc/nginx/sites-available
+------------
+server {
+    server_name localhost;
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/pablo/ugs/GroundSegment/GroundSegment/;
+    }
+    
+     location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+}
+-------------------
+Y en /etc/nginx/nginx.conf 
+http{
+	...
+	client_max_body_size 10M; 
+}
+
+sudo ln -s /etc/nginx/sites-available/GroundSegment /etc/nginx/sites-enabled
+Firewall y otros
+--------
+sudo nginx -t
+sudo systemctl restart nginx
+sudo ufw delete allow 8000
+sudo ufw allow 'Nginx Full'
+sudo systemctl restart gunicorn
+//Set DEBUG=False in settings.ini if it isn't already.
+service gunicorn restart (There is no difference between this command and sudo systemctl restart gunicorn)
+Restart the server sudo shutdown -r now
+
+#Comandos 2, solo para saber.
+Here are some commands you can use to look at the server logs. 
+These commands are absolutely crucial to know. 
+If your server randomly isn't working one day, this is what you use to start debugging.
+
+sudo journalctl is where all the logs are consolidated to. That's usually where I check.
+sudo tail -F /var/log/nginx/error.log View the last entries in the error log
+sudo journalctl -u nginx Nginx process logs
+sudo less /var/log/nginx/access.log Nginx access logs
+sudo less /var/log/nginx/error.log Nginx error logs
+sudo journalctl -u gunicorn gunicorn application logs
+sudo journalctl -u gunicorn.socket check gunicorn socket logs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Comandos utiles
+---------------
+
+Desinstalar todo lo que no este en el requirements.txt
+--------------------------------------------------------
+pip freeze | grep -v -f requirements.txt - | grep -v '^#' | xargs pip uninstall -y
+pip freeze | grep -v -f requirements.txt - | grep -v '^#' | grep -v '^-e ' | xargs pip uninstall -y
+

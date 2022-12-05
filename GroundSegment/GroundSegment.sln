@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2011
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "GroundSegment", "GroundSegment.pyproj", "{FD42D28F-7761-4CA5-92A4-F5FC39FC4591}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD42D28F-7761-4CA5-92A4-F5FC39FC4591}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD42D28F-7761-4CA5-92A4-F5FC39FC4591}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD42D28F-7761-4CA5-92A4-F5FC39FC4591}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD42D28F-7761-4CA5-92A4-F5FC39FC4591}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7FB71E75-6B63-4FAB-A1E4-898C3A83A453}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,3 @@
+C:\Users\pabli\source\repos\GroundSegment\GroundSegment\obj\Debug\GroundSegment.pyproj.CoreCompileInputs.cache
+C:\Users\pabli\source\repos\GroundSegment\GroundSegment\bin\Microsoft.PythonTools.WebRole.dll
+C:\Users\pabli\source\repos\GroundSegment\GroundSegment\bin\wfastcgi.py

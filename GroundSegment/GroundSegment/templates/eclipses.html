@@ -1,0 +1,55 @@
+{% extends "base.html" %} 
+{% block content %}
+{% load static %}
+<h1>Eclipses  (Satellite: {{satellite.code}} ) </h1>
+
+
+<form method='GET' action=''>
+	<div class="breadcrumbs">
+	    Satellite: 
+	    <select id="tbsatellite" name='tbsatellite'>
+			{% for s in sat_list %}
+		   		<option value="{{s.pk}}"
+		       		{% if s.pk == current_sat_id %}selected="selected"{% endif %}>
+		       		{{s.code|capfirst}}
+		   		</option>
+		  	{% endfor %}
+		</select>
+	
+	    From: <input type="date" value='{{request.GET.tbdesde}}' name='tbdesde'/>
+	    To: <input type="date" value='{{request.GET.tbhasta}}' name='tbhasta'/>
+	    <input type="submit" name="submit" value="Process"/>	    
+	   <!--  <h1> <input type="submit" name="descargar" value="Descargar"/> </h1> --> 
+    </div>              
+    
+</form>
+<!--  <h1> Satellite: {{tbsatellite}} </h1> --> 
+<div class="table-responsive">
+ <table class="table table-striped table-bordered table-condensed" width="100%">
+  <tr>
+  	<th>Eclipse id</th>
+    <th>Start Time [UTC]</th>
+    <th>Stop Time [UTC]</th> 
+    <th>Duration [min]</th> 
+   </tr>
+ 
+  {% for p in eclipse_list %}
+  <tr>
+  	<td>{{p.pk}}</td>
+    <td>{{p.getStartTimeStr}}</td>
+    <td>{{p.getStopTimeStr}}</td> 
+    <td>{{p.getDurationStr}}</td> 
+   </tr>
+  {% endfor %}
+</table>
+
+
+{% endblock %}
+
+ <!-- {% if messages %}
+	<ul>
+	   {% for message in messages %}
+		   <li>{{ message }}</li>
+	   {% endfor %}
+	</ul>
+  {% endif %}  -->  

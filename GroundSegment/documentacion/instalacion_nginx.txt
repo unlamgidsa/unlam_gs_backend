@@ -1,0 +1,36 @@
+https://channels.readthedocs.io/en/stable/deploying.html
+Con la siguiente linea corre http+websocket!
+ASGI es el remplazo de WSGI, daphne esta en beta.
+daphne -p 8000 GroundSegment.asgi:application
+
+https://www.youtube.com/watch?v=14zdpWW6eqw
+
+Instalacion gunicorn+django channels
+------------------------------------
+https://saurabhgujjar.medium.com/django-channels-with-daphne-gunicorn-and-nginx-on-digitalocean-all-in-one-guide-28625eead962
+
+Instalacion gunicorn
+------------------
+sudo apt install gunicorn
+gunicorn --bind 0.0.0.0:8000 groundsegment.wsgi o en nuestro Cambios
+gunicorn --bind 0.0.0.0:8000 wsgi:application
+
+
+Instalacion nginx
+---------------------
+Guia: https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-20-04-es
+sudo apt update
+sudo apt install nginx
+sudo ufw app list
+sudo ufw allow 'Nginx Full'
+systemctl status nginx
+Ver: http://127.0.0.1/  deberia estar pagina nginx
+
+Parar el servidor: sudo systemctl stop nginx
+Arrancar el servidor: sudo systemctl start nginx
+Reiniciar el servidor: sudo systemctl restart nginx
+Recargar (Cambios de configuracion sin perder conexion):sudo systemctl reload nginx
+
+Ver archivos de configuracion en :
+/etc/nginx/sites-available/ugs
+
