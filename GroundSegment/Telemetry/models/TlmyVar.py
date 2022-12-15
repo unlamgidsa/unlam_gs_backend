@@ -60,21 +60,13 @@ class TlmyVarManager(models.Manager):
             for o in objs:
                 o.created = dt
             
+            #TODO: ARTICULO EXTENSION => Aplicar aca prefiltros antes de serializar, cuantas de las novedades
+            #tienen a algun cliente interesado, quedarse solo con las que lo tienen
+
             jsonObjs = self.__dObjsToJson(objs)
             #jsonObjs = serializers.serialize('json', list(objs), fields=('id','code','calSValue', 'UnixTimeStamp', 'created'))
 
-            """
-            channel_layer = get_channel_layer()
-            tlmys = jsonObjs
-            channel_layer.group_send(
-                    "RTTelemetry", #esto seria el room.group_name 
-                    {
-                        "type": "onNewtlmy", #Function name!
-                        "tlmyVars": tlmys,                
-                    }
-                )
-            """
-
+            
 
             #print("Se envia signal, tiempo de serializacion:", (timezone.now()-dt).total_seconds())
             before_bulk_create.send(sender=self.__class__, tlmys=jsonObjs)
@@ -84,6 +76,7 @@ class TlmyVarManager(models.Manager):
 
         print("Bulk create a ejecutar")
         #Comentado temporalmente
+        #TODO: actualizar a django 4.1 para utilizar abulk_create
         #bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)
         #return bcr 
         print("Bulk create exitoso")

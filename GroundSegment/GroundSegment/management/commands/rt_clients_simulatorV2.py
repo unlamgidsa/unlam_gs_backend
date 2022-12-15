@@ -21,7 +21,7 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
         self._i = 1    
         self._lastdiff = 0
-        self.total_clients = 5
+        self.total_clients = 2
 
     def on_message(self, ws, message):
         
@@ -76,11 +76,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         #Que sea parametro
-        url = "ws://127.0.0.1:8001/ws/RTTelemetry/"
+        url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
         #url = "ws://127.0.0.1:8000/ws/SyncRTTelemetry/"
 
 
-        total_clients           = 625
+        total_clients           = 2
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    

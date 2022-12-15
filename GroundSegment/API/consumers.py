@@ -14,36 +14,65 @@ from multiprocessing import Process
 from django.utils import timezone
 from asgiref.sync import async_to_sync
 import asyncio
-"""
-class TlmyConsumer(WebsocketConsumer):
-  def connect(self):
-    self.accept()
-    self.send(text_data= json.dumps({'type':'onconnect','message': 'connection accepted'}))
- 
-  
-  def receive(self, *, text_data):
-      # WebsocketConsumer.receive(self, text_data=text_data, bytes_data=bytes_data)
-      if text_data.startswith("/name"):
-          self.username = text_data[5:].strip()
-          self.send(text_data="[set your username to %s]" % self.username)
-      else:
-          self.send(text_data=self.username + ": " + text_data)
 
-  def disconnect(self, message):
-      pass
-"""
+#Usar para sincronizar llamadas a las base de datos
+#justificar porque esto se comparte via DB en lugar
+#de via REDIS 
+from channels.db import database_sync_to_async
+from API.models import SubscribedTlmyVar, WSClient
+
+#WSClient.objects.all().delete()
 
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
-  async def connect(self):
-    #print("Scope==>",self.scope)
-    #client es ip y puerto, teoricamente identificaria univocamente un openmct
-   
-    clientid =  self.scope['client'][0]+"_"+str(self.scope['client'][1])
-    print("Client id ip+port: ", clientid)
+
+
+  @database_sync_to_async
+  def addClient(self):
+    ip = self.scope['client'][0]
+    port = self.scope['client'][1]
+
+    #TODO Ver que informacion util se puede persistir
     #self.scope["headers"] <= informacion sobre la conexion
     #if self.scope["user"].is_anonymous:
     #        self.close()
     #else self.room_group_name = self.scope['url_route']['kwargs']['room_name']
+
+    self.ws = WSClient(ipv4=ip, port=port)
+    self.ws.save()
+
+  
+  @database_sync_to_async
+  def deleteClient(self):
+    self.ws.delete()
+
+  @database_sync_to_async
+  def addSubscrivedTlmyVar(self, fullname):
+    
+    subscribedTlmyVar, created = SubscribedTlmyVar.objects.get_or_create(fullname=fullname, wsClient=self.ws)
+    if not created:
+      print("No creada, esta duplicada")
+
+    subscribedTlmyVar.save() 
+    
+    return None
+
+  @database_sync_to_async
+  def deleteSubscrivedTlmyVar(self, fullname):
+    try:
+      self.ws.subscribedTlmyVar.get(fullname=fullname).delete()
+    except SubscribedTlmyVar.DoesNotExists:
+      print("Se intenta desuscribir var no subscripta previamente")
+    return None
+
+  
+  async def connect(self):
+    #print("Scope==>",self.scope)
+    #client es ip y puerto, teoricamente identificaria univocamente un openmct
+    self.ws = None
+    self.clientid =  self.scope['client'][0]+"_"+str(self.scope['client'][1])
+    print("Client id ip+port: ", self.clientid)
+    await self.addClient()
+   
 
   
     #self.group = "newTelemetry"
@@ -65,14 +94,6 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
   async def sendNews(self, tlmys, event):
 
-      #
-      """
-      import os
-      mfile = os.path.join(os.path.dirname(__file__), 'SerializedTelemetry.txt')
-      f = open(mfile,'wt')
-      f.write(event["tlmyVars"])
-      f.close()
-      """
       tlmyVarsIds = json.loads(event["tlmyVarsIds"])
       try:
         if len(tlmyVarsIds)>0:
@@ -102,14 +123,10 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
         #print("Paquete enviado")
       except Exception as ex:
         print(ex)    
-      #AsyncWebsocketConsumer se ejecutan realmente en paralelo
-      #La realidad es que lo asincronico recien aparece recien aca, 
-      #y no parece ser el problema de la degradacion del servicio.    
       
   
   
   async def aOnNewtlmy(self, event):
-    
     #print("####ON NEW TLMY###>>>>ROOM NAME: ", self.room_name)
     try:
       if not "tlmyVars" in event:
@@ -135,6 +152,9 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
       if not var in self.tlmys:
         print("Se subscribe var", var)
         self.tlmys.add(var) 
+        #TODO: Revisar si conviene doble implementacion, tener en memoria y 
+        #en base a donde esta subscripto
+        await self.addSubscrivedTlmyVar(var)
         #¿Avisar al grupo de que hay nuevas telemetrias o es muy complejo?
       else:
         print("Var ya existente", var)
@@ -144,6 +164,7 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
       print("Se desubscribe var")
       if var in self.tlmys:
         self.tlmys.remove(var)
+        await self.deleteSubscrivedTlmyVar(var)
       response_text = var
     else:
       print('Unknown command')
@@ -167,6 +188,11 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     print("<", text_data)
 
   async def disconnect(self, close_code):
+    #por CASCADE deberia desubscribir todo
+    await self.deleteClient()
+    #for var in self.tlmys:
+    #  await self.deleteSubscrivedTlmyVar(var, self.clientid)
+    
     await self.channel_layer.group_discard(
       "RTTelemetry",
       self.channel_name

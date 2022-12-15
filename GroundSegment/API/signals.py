@@ -10,6 +10,12 @@ import json
 
 @receiver(before_bulk_create, sender=TlmyVarManager)
 def TlmyVarHandler(sender, **kwargs):
+
+    #TODO: ARTICULO EXTENSION => conviene esto o simplemente
+    #enviar un group_send por cada variable?
+    #Se puede recibir esta signal sin serializar o mejor directamente
+    #hacer esto en el bulk_create del TlmyVarManager?
+
     channel_layer = get_channel_layer()
     
     tlmys       = kwargs["tlmys"]
