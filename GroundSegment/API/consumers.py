@@ -21,7 +21,7 @@ import asyncio
 from channels.db import database_sync_to_async
 from API.models import SubscribedTlmyVar, WSClient
 
-#WSClient.objects.all().delete()
+WSClient.objects.all().delete()
 
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 

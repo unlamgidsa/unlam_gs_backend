@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.core import serializers
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from API.models import SubscribedTlmyVar
 
 before_bulk_create = django.dispatch.Signal()
 
@@ -63,7 +64,11 @@ class TlmyVarManager(models.Manager):
             #TODO: ARTICULO EXTENSION => Aplicar aca prefiltros antes de serializar, cuantas de las novedades
             #tienen a algun cliente interesado, quedarse solo con las que lo tienen
 
-            jsonObjs = self.__dObjsToJson(objs)
+            #Optimizacion 1. Me quedo solo con las variables que esten subscriptas por al menos un cliente
+            #Medir el costo de esta consulta
+            subsVars = SubscribedTlmyVar.objects.values_list('fullname', flat=True).distinct()
+            
+            jsonObjs = self.__dObjsToJson(objs, subsVars)
             #jsonObjs = serializers.serialize('json', list(objs), fields=('id','code','calSValue', 'UnixTimeStamp', 'created'))
 
             
@@ -88,19 +93,24 @@ class TlmyVarManager(models.Manager):
     
     
     
-    def __dObjsToJson(sender, objs):
+    def __dObjsToJson(sender, objs, subsVars):
         
         result = []
         #if len(objs)>0:
         #    arrive_time = o.tlmyRawData.createdAt
         for o in objs:
-            result.append({ 'id':o.id,
-                            'code':o.code, 
-                            'calSValue':o.calSValue, 
-                            #"tstamp:": o.tstamp,
-                            'UnixTimeStamp:':o.UnixTimeStamp,
-                            'created':o.created.isoformat(),
-                            'fullName': o.getFullName()})
+            #Serializo solo si esta en
+            fullname = o.getFullName()
+            if fullname in subsVars: 
+                result.append({ 'id':o.id,
+                                'code':o.code, 
+                                'calSValue':o.calSValue, 
+                                #"tstamp:": o.tstamp,
+                                'UnixTimeStamp:':o.UnixTimeStamp,
+                                'created':o.created.isoformat(),
+                                'fullName': o.getFullName()})
+            else:
+                pass
 
         return json.dumps(result)
         
