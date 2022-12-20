@@ -18,18 +18,24 @@ def TlmyVarHandler(sender, **kwargs):
 
     tlmys       = kwargs["tlmys"]
     channel_layer = get_channel_layer()
-    for tlmy in tlmys:
-        //Seguir aca!
-        async_to_sync(channel_layer.group_send)(
-            "RTTelemetry", #esto seria el room.group_name 
-            {
-                "type": "aOnNewtlmy", #Function name!
-                "tlmyVars": tlmys,               
-                "tlmyVarsIds": tlmysIds,  
-            }
-        )
+    
+    async_to_sync(channel_layer.group_send)(
+        "RTTelemetry", #esto seria el room.group_name 
+        {
+            "type": "aOnNewtlmy", #Function name!
+            "tlmyVars": tlmys,               
+            "tlmyVarsIds": tlmysIds,  
+        }
+    )
 
     """
+    for tlmy in tlmys:
+        #Seguir aca! crear ramas que envien individualmente las variables
+        #y ramas que envien todo junto, verificar diferencias 
+        #en el rendimiento.
+    """
+
+    
     
     exTlmys     = json.loads(tlmys)
     exTlmys     = [x["fullName"] for x in exTlmys] 
