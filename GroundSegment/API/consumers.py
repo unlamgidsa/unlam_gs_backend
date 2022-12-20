@@ -24,19 +24,15 @@ from API.models import SubscribedTlmyVar, WSClient
 WSClient.objects.all().delete()
 
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
-
-
   @database_sync_to_async
   def addClient(self):
     ip = self.scope['client'][0]
     port = self.scope['client'][1]
-
     #TODO Ver que informacion util se puede persistir
     #self.scope["headers"] <= informacion sobre la conexion
     #if self.scope["user"].is_anonymous:
     #        self.close()
     #else self.room_group_name = self.scope['url_route']['kwargs']['room_name']
-
     self.ws = WSClient(ipv4=ip, port=port)
     self.ws.save()
 
@@ -47,13 +43,10 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
   @database_sync_to_async
   def addSubscrivedTlmyVar(self, fullname):
-    
     subscribedTlmyVar, created = SubscribedTlmyVar.objects.get_or_create(fullname=fullname, wsClient=self.ws)
     if not created:
       print("No creada, esta duplicada")
-
     subscribedTlmyVar.save() 
-    
     return None
 
   @database_sync_to_async
@@ -72,9 +65,6 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     self.clientid =  self.scope['client'][0]+"_"+str(self.scope['client'][1])
     print("Client id ip+port: ", self.clientid)
     await self.addClient()
-   
-
-  
     #self.group = "newTelemetry"
     self.room_name        ="RTTelemetry"
     self.room_group_name  = "RTTelemetry"
@@ -93,7 +83,6 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     await self.send(text_data= json.dumps({'type':'onconnect','message': 'connection accepted'}))
 
   async def sendNews(self, tlmys, event):
-
       tlmyVarsIds = json.loads(event["tlmyVarsIds"])
       try:
         if len(tlmyVarsIds)>0:
