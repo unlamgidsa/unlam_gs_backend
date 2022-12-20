@@ -11,20 +11,16 @@ import json
 @receiver(before_bulk_create, sender=TlmyVarManager)
 def TlmyVarHandler(sender, **kwargs):
 
-    #TODO: ARTICULO EXTENSION => conviene esto o simplemente
-    #enviar un group_send por cada variable?
-    #Se puede recibir esta signal sin serializar o mejor directamente
-    #hacer esto en el bulk_create del TlmyVarManager?
-    
+    #TODO: ARTICULO EXTENSION => envio un 
+    # group_send por cada variable, sobrecargo el redis
+    # pero cada cliente no recibe una unica variable cada vez
+    # sabra si tiene o no que informarla 
 
-
-    channel_layer = get_channel_layer()
-    
     tlmys       = kwargs["tlmys"]
-    exTlmys     = json.loads(tlmys)
-    exTlmys     = [x["fullName"] for x in exTlmys] 
-    tlmysIds    =  json.dumps(exTlmys)
-    async_to_sync(channel_layer.group_send)(
+    channel_layer = get_channel_layer()
+    for tlmy in tlmys:
+        //Seguir aca!
+        async_to_sync(channel_layer.group_send)(
             "RTTelemetry", #esto seria el room.group_name 
             {
                 "type": "aOnNewtlmy", #Function name!
@@ -33,6 +29,12 @@ def TlmyVarHandler(sender, **kwargs):
             }
         )
 
+    """
+    
+    exTlmys     = json.loads(tlmys)
+    exTlmys     = [x["fullName"] for x in exTlmys] 
+    tlmysIds    =  json.dumps(exTlmys)
+    """
 
 
 
