@@ -21,7 +21,9 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
         self._i = 1    
         self._lastdiff = 0
-        self.total_clients = 2
+        self.total_clients = 0
+        self.seconds = []
+
 
     def on_message(self, ws, message):
         
@@ -44,15 +46,16 @@ class Command(BaseCommand):
         else:
             #calcular la media de diferencia
             #print("Recibiendo algo", datetime.now())
-            seconds = 0
+            
             self._i += 1
             dt = timezone.now()
-            for r in message:
-                seconds += (dt-datetime.fromisoformat(r["created"])).total_seconds()
+            
             #print("=>", len(rawmessage), "diffs:", seconds/len(message) )
-            self._lastdiff = seconds/len(message)
-            if (self._i % self.total_clients) == 0:
-                print("diffs=>", self._lastdiff)
+            self.seconds.append((dt-datetime.fromisoformat(message["created"])).total_seconds())
+            
+            if self._i%30==0:
+                print("Diff=>", sum(self.seconds)/len(self.seconds))
+                #self.seconds = []
 
             
         
@@ -80,7 +83,7 @@ class Command(BaseCommand):
         #url = "ws://127.0.0.1:8000/ws/SyncRTTelemetry/"
 
 
-        total_clients           = 2
+        total_clients           = 25
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    

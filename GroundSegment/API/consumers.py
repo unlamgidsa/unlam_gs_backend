@@ -83,33 +83,11 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     await self.send(text_data= json.dumps({'type':'onconnect','message': 'connection accepted'}))
 
   async def sendNews(self, tlmys, event):
-      tlmyVarsIds = json.loads(event["tlmyVarsIds"])
       try:
-        if len(tlmyVarsIds)>0:
-          dt = timezone.now()
-          #print("Las variables tardan esto en llegar aca, porque?===>>>>", (dt-datetime.fromisoformat(exTlmys[0]["created"])).total_seconds())
-          exTlmys = json.loads(event["tlmyVars"])
-      
-          #Extraigo ids
-          exTlmysSet = set(tlmyVarsIds)
-          intersection_ids = tlmys & exTlmysSet
-          #Todo muy lindo pero ahora hay que juntar las variables por clave
-          pktlist = [x for x in exTlmys if x["fullName"] in intersection_ids]
-        
-        diffs = 0
-        cont = 0
-        dt = timezone.now()
-        for p in pktlist:
-          diffs += (dt-datetime.fromisoformat(p["created"])).total_seconds()
-          cont=cont+1
-        
-        if cont!=0:
-          med = diffs/cont
-        else:
-          med = 0
-        #print("Cada paquete tarde esto, se estan encolando?=>", med)  
-        await self.send(json.dumps(pktlist))
-        #print("Paquete enviado")
+        #event["tlmyVarsIds"] == fullname
+        if event["tlmyVarsIds"] in self.tlmys: #esta dentro de las subscriptas
+          #dt = timezone.now()
+          await self.send(event["tlmyVars"])
       except Exception as ex:
         print(ex)    
       

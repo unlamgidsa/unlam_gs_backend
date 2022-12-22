@@ -16,31 +16,32 @@ def TlmyVarHandler(sender, **kwargs):
     # pero cada cliente no recibe una unica variable cada vez
     # sabra si tiene o no que informarla 
 
-    tlmys       = kwargs["tlmys"]
-    channel_layer = get_channel_layer()
+    tlmys           = kwargs["tlmys"]
+    channel_layer   = get_channel_layer()
     
-    async_to_sync(channel_layer.group_send)(
-        "RTTelemetry", #esto seria el room.group_name 
-        {
-            "type": "aOnNewtlmy", #Function name!
-            "tlmyVars": tlmys,               
-            "tlmyVarsIds": tlmysIds,  
-        }
-    )
+    #hasta aca solo llegan las que estan subscriptas a al menos 
+    #un cliente, se hace un broadcasting general pero indivicualmente
+    #cada variable
 
-    """
-    for tlmy in tlmys:
+    #es importante ver que ya aqui ocurre una serializacion y posterior
+    #desearlizacion, ver si es posible quitar la signal
+    exTlmys = json.loads(tlmys)
+    
+    for tlmy in exTlmys:
         #Seguir aca! crear ramas que envien individualmente las variables
         #y ramas que envien todo junto, verificar diferencias 
         #en el rendimiento.
-    """
+        async_to_sync(channel_layer.group_send)(
+        "RTTelemetry", #esto seria el room.group_name 
+        {
+            "type": "aOnNewtlmy", #Function name!
+            "tlmyVars": json.dumps(tlmy),               
+            "tlmyVarsIds": tlmy["fullName"]
+        }
+    )
 
     
     
-    exTlmys     = json.loads(tlmys)
-    exTlmys     = [x["fullName"] for x in exTlmys] 
-    tlmysIds    =  json.dumps(exTlmys)
-    """
 
 
 
