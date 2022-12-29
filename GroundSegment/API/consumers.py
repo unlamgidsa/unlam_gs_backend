@@ -84,9 +84,9 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
   async def sendNews(self, tlmys, event):
       try:
-        #event["tlmyVarsIds"] == fullname
+        #Esta dentro de las subscriptas?
         if event["tlmyVarsIds"] in self.tlmys: #esta dentro de las subscriptas
-          #dt = timezone.now()
+          #Envio de manera asincrona
           await self.send(event["tlmyVars"])
       except Exception as ex:
         print(ex)    

@@ -28,9 +28,7 @@ def TlmyVarHandler(sender, **kwargs):
     exTlmys = json.loads(tlmys)
     
     for tlmy in exTlmys:
-        #Seguir aca! crear ramas que envien individualmente las variables
-        #y ramas que envien todo junto, verificar diferencias 
-        #en el rendimiento.
+        #Se envia al grupo cada telemetria individualmente
         async_to_sync(channel_layer.group_send)(
         "RTTelemetry", #esto seria el room.group_name 
         {
