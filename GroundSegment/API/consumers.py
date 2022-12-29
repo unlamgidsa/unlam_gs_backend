@@ -20,12 +20,11 @@ import asyncio
 #de via REDIS 
 from channels.db import database_sync_to_async
 from API.models import SubscribedTlmyVar, WSClient
-
-WSClient.objects.all().delete()
+from django.core.exceptions import ObjectDoesNotExist
 
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
-
+  
   @database_sync_to_async
   def addClient(self):
     ip = self.scope['client'][0]
@@ -36,7 +35,11 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     #if self.scope["user"].is_anonymous:
     #        self.close()
     #else self.room_group_name = self.scope['url_route']['kwargs']['room_name']
-
+    try:
+      ws = WSClient.objects.get(ipv4=ip, port=port)
+      ws.delete()
+    except ObjectDoesNotExist:
+      pass #it is to be expected
     self.ws = WSClient(ipv4=ip, port=port)
     self.ws.save()
 
