@@ -11,29 +11,17 @@ import json
 @receiver(before_bulk_create, sender=TlmyVarManager)
 def TlmyVarHandler(sender, **kwargs):
 
-    #TODO: ARTICULO EXTENSION => envio un 
-    # group_send por cada variable, sobrecargo el redis
-    # pero cada cliente no recibe una unica variable cada vez
-    # sabra si tiene o no que informarla 
-
     tlmys           = kwargs["tlmys"]
     channel_layer   = get_channel_layer()
     
-    #hasta aca solo llegan las que estan subscriptas a al menos 
-    #un cliente, se hace un broadcasting general pero indivicualmente
-    #cada variable
-
-    #es importante ver que ya aqui ocurre una serializacion y posterior
-    #desearlizacion, ver si es posible quitar la signal
     exTlmys = json.loads(tlmys)
     
-    for tlmy in exTlmys:
-        #Se envia al grupo cada telemetria individualmente
-        async_to_sync(channel_layer.group_send)(
+    #Se envia al grupo cada telemetria individualmente
+    async_to_sync(channel_layer.group_send)(
         "RTTelemetry", #esto seria el room.group_name 
         {
             "type": "aOnNewtlmy", #Function name!
-            "tlmyVars": json.dumps(tlmy),               
+            "tlmyVars": tlmys,               
             "tlmyVarsIds": tlmy["fullName"]
         }
     )
