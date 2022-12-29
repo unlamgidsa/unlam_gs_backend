@@ -6,6 +6,9 @@ class WSClient(models.Model):
     lastConnection  = models.DateTimeField(auto_now_add=True)
     
 
+
+
+
 class SubscribedTlmyVar(models.Model):
     fullname = models.CharField('fullname', max_length=64, help_text='var name satellite.tlmyvar', default="")
     wsClient = models.ForeignKey('WSClient', related_name="subscribedTlmyVar", on_delete=models.CASCADE)
