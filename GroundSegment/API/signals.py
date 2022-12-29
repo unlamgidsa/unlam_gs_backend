@@ -11,20 +11,23 @@ import json
 @receiver(before_bulk_create, sender=TlmyVarManager)
 def TlmyVarHandler(sender, **kwargs):
 
-    tlmys           = kwargs["tlmys"]
-    channel_layer   = get_channel_layer()
-    
-    exTlmys = json.loads(tlmys)
-    
-    #Se envia al grupo cada telemetria individualmente
+    #Se manda un unico paquete pero solo las variables 
+    #que le interesan a alguien
+    channel_layer = get_channel_layer()
+    tlmys       = kwargs["tlmys"]
+    exTlmys     = json.loads(tlmys)
+    exTlmys     = [x["fullName"] for x in exTlmys] 
+    tlmysIds    =  json.dumps(exTlmys)
     async_to_sync(channel_layer.group_send)(
-        "RTTelemetry", #esto seria el room.group_name 
-        {
-            "type": "aOnNewtlmy", #Function name!
-            "tlmyVars": tlmys,               
-            "tlmyVarsIds": tlmy["fullName"]
-        }
-    )
+            "RTTelemetry", #esto seria el room.group_name 
+            {
+                "type": "aOnNewtlmy", #Function name!
+                "tlmyVars": tlmys,               
+                "tlmyVarsIds": tlmysIds,  
+            }
+        )
+
+
 
     
     
