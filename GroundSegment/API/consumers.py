@@ -21,7 +21,11 @@ import asyncio
 from channels.db import database_sync_to_async
 from API.models import SubscribedTlmyVar, WSClient
 
-WSClient.objects.all().delete()
+@database_sync_to_async
+def deleteAllSessions():
+  WSClient.objects.all().delete()
+
+deleteAllSessions()
 
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
   @database_sync_to_async

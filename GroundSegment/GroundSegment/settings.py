@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 #APIURL = "http://127.0.0.1:8059/TlmyRawData/"
-APIURL = "http://127.0.0.1:8000/TlmyRawData/"
+APIURL = "http://127.0.0.1:8001/TlmyRawData/"
 #APIURL = "http://127.0.0.1:8051/TlmyRawData/"
 
 # Quick-start development settings - unsuitable for production

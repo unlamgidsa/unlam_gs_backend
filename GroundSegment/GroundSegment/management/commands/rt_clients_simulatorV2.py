@@ -46,14 +46,13 @@ class Command(BaseCommand):
         else:
             #calcular la media de diferencia
             #print("Recibiendo algo", datetime.now())
-            
             self._i += 1
             dt = timezone.now()
             
             #print("=>", len(rawmessage), "diffs:", seconds/len(message) )
             self.seconds.append((dt-datetime.fromisoformat(message["created"])).total_seconds())
             
-            if self._i%30==0:
+            if self._i%100==0:
                 print("Diff=>", sum(self.seconds)/len(self.seconds))
                 #self.seconds = []
 
@@ -79,11 +78,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         #Que sea parametro
-        url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
+        url = "ws://127.0.0.1:8001/ws/RTTelemetry/"
         #url = "ws://127.0.0.1:8000/ws/SyncRTTelemetry/"
 
 
-        total_clients           = 25
+        total_clients           = 125
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    
