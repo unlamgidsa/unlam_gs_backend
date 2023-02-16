@@ -17,7 +17,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "GroundSegment.settings")
 django_asgi_app = get_asgi_application()
 
 from API.consumers import AsyncTlmyConsumer
-from API.syncConsumer import TlmyConsumer
+
 
 
 application = ProtocolTypeRouter({
@@ -28,8 +28,8 @@ application = ProtocolTypeRouter({
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter([
-                path(r'ws/RTTelemetry/', AsyncTlmyConsumer.as_asgi()),
-                path(r'ws/SyncRTTelemetry/', TlmyConsumer.as_asgi()),
+                path(r'ws/RTTelemetry/', AsyncTlmyConsumer.as_asgi())
+                
             ])
         )
     ),

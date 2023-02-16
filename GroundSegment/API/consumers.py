@@ -20,8 +20,9 @@ import asyncio
 #de via REDIS 
 from channels.db import database_sync_to_async
 from API.models import SubscribedTlmyVar, WSClient
+from Telemetry.models.TlmyVar import TlmyVar
 from django.core.exceptions import ObjectDoesNotExist
-
+from Telemetry.models.TlmyVarType import TlmyVarType
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
   
@@ -40,7 +41,9 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
       ws.delete()
     except ObjectDoesNotExist:
       pass #it is to be expected
-    self.ws = WSClient(ipv4=ip, port=port)
+
+    lastTlmyVarId = TlmyVar.objects.latest('id').id
+    self.ws = WSClient(ipv4=ip, port=port, lastTlmyVarId=lastTlmyVarId)
     self.ws.save()
 
   
@@ -51,8 +54,12 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
   @database_sync_to_async
   def addSubscrivedTlmyVar(self, fullname):
     
-    subscribedTlmyVar, created = SubscribedTlmyVar.objects.get_or_create(fullname=fullname, wsClient=self.ws)
+    subscribedTlmyVar, created = SubscribedTlmyVar.objects.get_or_create(
+          fullname=fullname, 
+          wsClient=self.ws,
+          tlmyVarType=TlmyVarType.objects.get(fullName=fullname))
     if not created:
+      subscribedTlmyVar.tlmyVarType=TlmyVarType.objects.get(fullName=fullname)
       print("No creada, esta duplicada")
 
     subscribedTlmyVar.save() 
@@ -95,48 +102,39 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     await self.accept()
     await self.send(text_data= json.dumps({'type':'onconnect','message': 'connection accepted'}))
 
-  async def sendNews(self, tlmys, event):
 
-      tlmyVarsIds = json.loads(event["tlmyVarsIds"])
-      try:
-        if len(tlmyVarsIds)>0:
-          dt = timezone.now()
-          #print("Las variables tardan esto en llegar aca, porque?===>>>>", (dt-datetime.fromisoformat(exTlmys[0]["created"])).total_seconds())
-          exTlmys = json.loads(event["tlmyVars"])
-      
-          #Extraigo ids
-          exTlmysSet = set(tlmyVarsIds)
-          intersection_ids = tlmys & exTlmysSet
-          #Todo muy lindo pero ahora hay que juntar las variables por clave
-          pktlist = [x for x in exTlmys if x["fullName"] in intersection_ids]
+  def _objsToJson(sender, objs):
         
-        diffs = 0
-        cont = 0
-        dt = timezone.now()
-        for p in pktlist:
-          diffs += (dt-datetime.fromisoformat(p["created"])).total_seconds()
-          cont=cont+1
+        result = []
+        #if len(objs)>0:
+        #    arrive_time = o.tlmyRawData.createdAt
+        for o in objs:
+            result.append({ 'id':o.id,
+                            'code':o.code, 
+                            'calSValue':o.calSValue, 
+                            #"tstamp:": o.tstamp,
+                            'UnixTimeStamp:':o.UnixTimeStamp,
+                            'created':o.created.isoformat(), #<=Este es el usado para la diff
+                            'fullName': o.getFullName()})
         
-        if cont!=0:
-          med = diffs/cont
-        else:
-          med = 0
-        #print("Cada paquete tarde esto, se estan encolando?=>", med)  
-        await self.send(json.dumps(pktlist))
-        #print("Paquete enviado")
-      except Exception as ex:
-        print(ex)    
+
+        return json.dumps(result)
+
+
+  @database_sync_to_async
+  def getUpdatedTlmyVars(self, lastid):
+      ids = self.ws.subscribedTlmyVar.all().values_list('tlmyVarType__id', flat=True)
+      result = TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=ids)
       
-  
-  
+      return self._objsToJson(result)
+
+      
   async def aOnNewtlmy(self, event):
     #print("####ON NEW TLMY###>>>>ROOM NAME: ", self.room_name)
-    try:
-      if not "tlmyVars" in event:
-        print("Error, la signal viene con datos desconocidos")
-      else:
-        await self.sendNews(self.tlmys, event)
-        
+    try:      
+      updatedTlmyVars = await self.getUpdatedTlmyVars( event["lastid"] )
+      #print(updatedTlmyVars)
+      await self.send(updatedTlmyVars)
     except Exception as ex:
       print(ex)
     

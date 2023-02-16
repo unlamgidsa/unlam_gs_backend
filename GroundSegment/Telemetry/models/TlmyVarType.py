@@ -175,12 +175,11 @@ class TlmyVarType(models.Model):
     checkoutlier    = models.BooleanField("Check if outlier", null=False, default=False)
     outliermaxlimit = models.BigIntegerField("Max outlier value", null=False, default=0);
     outlierminlimit = models.BigIntegerField("Min outlier value", null=False, default=0);
+    fullName        = models.CharField('fullname', max_length=64, help_text='fullname', default="")
     
-    @property
-    def fullName(self):
-        #return self.satellite.code+"."+self.code
-        return ''.join(
-            [self.satellite.code,'.',self.code])
+
+  
+        
 
     def __str__(self):
         return self.code + ", sat: " + self.satellite.code
@@ -233,6 +232,10 @@ class TlmyVarType(models.Model):
 
     def getFullName(self):
         #TODO: Persist this proporty in database for performance reason
-        return self.fullName
-        
-    
+        return self.fullname
+
+
+    def save(self, *args, **kwargs):
+        self.fullName = ''.join([self.satellite.code,'.',self.code])
+        super(TlmyVarType, self).save(*args, **kwargs) 
+         

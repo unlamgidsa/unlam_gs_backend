@@ -96,14 +96,14 @@ class Command(BaseCommand):
 
 
 
-        #Ejecutar esta linea si se pretender borrar todas los tipos de 
-        #variables de tlmy del satelite "RTEmuSat" y crear nuevas 
-        #sat = self._init_database_(frm1Dic)
+        createNewTypes=False
 
-
-        #Ejecutar estas dos lineas si se pretende trabajar con los tipos ya creados
-        sat_code = "RTEmuSat"
-        sat = Satellite.objects.get(code=sat_code)
+        if(createNewTypes):
+            sat = self._init_database_(frm1Dic)
+        else:
+            sat_code = "RTEmuSat"
+            sat = Satellite.objects.get(code=sat_code)
+        
         
         t1 = time()
         t2 = time()

@@ -17,19 +17,16 @@ def TlmyVarHandler(sender, **kwargs):
     #hacer esto en el bulk_create del TlmyVarManager?
     
 
-
     channel_layer = get_channel_layer()
-    
-    tlmys       = kwargs["tlmys"]
-    exTlmys     = json.loads(tlmys)
-    exTlmys     = [x["fullName"] for x in exTlmys] 
-    tlmysIds    =  json.dumps(exTlmys)
+    #No se transmite informacion, a futuro se podria transmitir el 
+    #ultimo tlmyvarid o el satelite, 
+    #por ahora probamos solo indicando que hay novedades
     async_to_sync(channel_layer.group_send)(
             "RTTelemetry", #esto seria el room.group_name 
             {
                 "type": "aOnNewtlmy", #Function name!
-                "tlmyVars": tlmys,               
-                "tlmyVarsIds": tlmysIds,  
+                "lastid":kwargs['lastid']             
+                  
             }
         )
 
