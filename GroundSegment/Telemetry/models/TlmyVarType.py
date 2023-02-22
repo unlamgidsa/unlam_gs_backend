@@ -176,17 +176,13 @@ class TlmyVarType(models.Model):
     outliermaxlimit = models.BigIntegerField("Max outlier value", null=False, default=0);
     outlierminlimit = models.BigIntegerField("Min outlier value", null=False, default=0);
     fullName        = models.CharField('fullname', max_length=64, help_text='fullname', default="")
-    
-
-  
-        
+       
 
     def __str__(self):
         return self.code + ", sat: " + self.satellite.code
     
     def getTimeFromLastUpdate(self):
         pass
-
     
     def getValue(self):
         # Retorna el valor en funcion del tipo

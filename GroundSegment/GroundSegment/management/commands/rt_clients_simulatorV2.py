@@ -8,11 +8,8 @@ from django.utils import timezone
 from GroundSegment.models.Satellite import Satellite
 from Telemetry.models.TlmyVar import TlmyVar
 import websocket
-import _thread
 import time
 import rel
-
-
 
 class Command(BaseCommand):
     help = 'Start the RTClientsSimulator'

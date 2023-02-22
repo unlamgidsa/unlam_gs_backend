@@ -111,10 +111,11 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     try:      
       lastid = event["lastid"]
       tlmyVars = []
+      updatedTlmyVars = []
       async for tvt in self.ws.subscribedTlmyVar.all().values_list('tlmyVarType__id', flat=True):
         tlmyVars.append(tvt)
-      async for tv in  TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','UnixTimeStamp','created', 'fullName', flat=True):
-        updatedTlmyVars.append(tv)
+      async for tv in  TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','UnixTimeStamp','created', 'fullName'):
+        updatedTlmyVars.append({'id':tv[0],'code':tv[1],'calSValue':tv[2],'UnixTimeStamp':tv[3],'created':tv[4].isoformat(), 'fullName':tv[5]})
       #serialize data
       updatedTlmyVars = json.dumps(updatedTlmyVars)
       #print(updatedTlmyVars)
