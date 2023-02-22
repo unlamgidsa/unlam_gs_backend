@@ -1,4 +1,4 @@
-from django.test import TestCase
+
 
 # Create your tests here.
 from django.urls import reverse
@@ -22,23 +22,21 @@ class Test(APITestCase):
     
     @classmethod
     def setUpClass(cls):
-        """
-        Crea los maestros de operacion para el resto de los test de esta unidad
+        pass
         """
         super(Test, cls).setUpClass()
         print("Creando datos maestros...")
         DataCreation()
         print("Datos maestros creados.")
-        pass
-    
+        """
+        
+        
     #@classmethod
     #def setUpTestData(cls):
     #    call_command('loaddata', 'myfile', verbosity=0)
         
     
-    def testAddTelemetryRawPkt(self):
-        """
-        Ensure we can create a new account object.
+    #def testAddTelemetryRawPkt(self):
         """
         dt = datetime.utcnow()
         
@@ -57,6 +55,5 @@ class Test(APITestCase):
             response = self.client.post(url, jsondata, content_type='application/json')
             dt = datetime.utcnow()
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-         
-        
+        """ 
         

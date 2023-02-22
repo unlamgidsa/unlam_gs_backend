@@ -5,7 +5,7 @@ from django.db import migrations, models
 def fullname_update(apps, schema_editor):
     tvts = apps.get_model('Telemetry', 'TlmyVarType').objects.all()
     for tv in tvts:
-        tv.fullName = "pending"
+        tv.fullName = ''.join([tv.satellite.code,'.',tv.code])
         tv.save()
 
 class Migration(migrations.Migration):

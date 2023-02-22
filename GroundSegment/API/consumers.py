@@ -23,6 +23,10 @@ from API.models import SubscribedTlmyVar, WSClient
 from Telemetry.models.TlmyVar import TlmyVar
 from django.core.exceptions import ObjectDoesNotExist
 from Telemetry.models.TlmyVarType import TlmyVarType
+import os
+
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
   
@@ -42,8 +46,8 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     except ObjectDoesNotExist:
       pass #it is to be expected
 
-    lastTlmyVarId = TlmyVar.objects.latest('id').id
-    self.ws = WSClient(ipv4=ip, port=port, lastTlmyVarId=lastTlmyVarId)
+    
+    self.ws = WSClient(ipv4=ip, port=port)
     self.ws.save()
 
   
@@ -101,38 +105,18 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     
     await self.accept()
     await self.send(text_data= json.dumps({'type':'onconnect','message': 'connection accepted'}))
-
-
-  def _objsToJson(sender, objs):
-        
-        result = []
-        #if len(objs)>0:
-        #    arrive_time = o.tlmyRawData.createdAt
-        for o in objs:
-            result.append({ 'id':o.id,
-                            'code':o.code, 
-                            'calSValue':o.calSValue, 
-                            #"tstamp:": o.tstamp,
-                            'UnixTimeStamp:':o.UnixTimeStamp,
-                            'created':o.created.isoformat(), #<=Este es el usado para la diff
-                            'fullName': o.getFullName()})
-        
-
-        return json.dumps(result)
-
-
-  @database_sync_to_async
-  def getUpdatedTlmyVars(self, lastid):
-      ids = self.ws.subscribedTlmyVar.all().values_list('tlmyVarType__id', flat=True)
-      result = TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=ids)
-      
-      return self._objsToJson(result)
-
       
   async def aOnNewtlmy(self, event):
     #print("####ON NEW TLMY###>>>>ROOM NAME: ", self.room_name)
     try:      
-      updatedTlmyVars = await self.getUpdatedTlmyVars( event["lastid"] )
+      lastid = event["lastid"]
+      tlmyVars = []
+      async for tvt in self.ws.subscribedTlmyVar.all().values_list('tlmyVarType__id', flat=True):
+        tlmyVars.append(tvt)
+      async for tv in  TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','UnixTimeStamp','created', 'fullName', flat=True):
+        updatedTlmyVars.append(tv)
+      #serialize data
+      updatedTlmyVars = json.dumps(updatedTlmyVars)
       #print(updatedTlmyVars)
       await self.send(updatedTlmyVars)
     except Exception as ex:

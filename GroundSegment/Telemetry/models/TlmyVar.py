@@ -138,10 +138,9 @@ class TlmyVar(models.Model):
     #para despues guardar al hijo
     tlmyVarType = models.ForeignKey(TlmyVarType, related_name="tlmyVars", on_delete=PROTECT)
     tlmyRawData = models.ForeignKey(TlmyRawData, on_delete=PROTECT, related_name='tlmyVars', null=True)
+    fullName    = models.CharField('fullname', max_length=64, help_text='fullname', default="")
     #satellite   = models.ForeignKey('GroundSegment.Satellite', related_name="tlmyvars", on_delete=PROTECT)
-    @property
-    def fullName(self):
-        return self.tlmyVarType.fullName
+   
 
     class Meta:
     
@@ -338,6 +337,10 @@ class TlmyVar(models.Model):
 
     def getFullName(self):
         return self.tlmyVarType.fullName
+
+    def save(self, *args, **kwargs):
+        self.fullName = self.tlmyVarType.fullName
+        super(TlmyVar, self).save(*args, **kwargs) 
 
 
     

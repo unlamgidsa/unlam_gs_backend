@@ -97,7 +97,7 @@ class Command(BaseCommand):
 
 
         createNewTypes=True
-        print(MyModel.objects.filter(name="my name").query)
+        
         if(createNewTypes):
             sat = self._init_database_(frm1Dic)
         else:

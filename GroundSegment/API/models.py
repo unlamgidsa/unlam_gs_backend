@@ -6,7 +6,7 @@ class WSClient(models.Model):
     ipv4            = models.CharField('Ipv4', max_length=24, help_text='ipv4', default="")
     port            = models.IntegerField('port', default=0)
     lastConnection  = models.DateTimeField(auto_now_add=True)
-    lastTlmyVarId   = models.BigIntegerField(default=-1) 
+    lastTlmyVarId   = models.BigIntegerField(default=-1) #Deprecated?
 
 
 class SubscribedTlmyVar(models.Model):
