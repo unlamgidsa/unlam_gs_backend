@@ -56,6 +56,11 @@ class TlmyVarManager(models.Manager):
         #Pasar a asincrono para informar en tiempo totalmente real  
         #objs es lista de objetos django, convierto a objetos planos
         try:
+
+            #Unfortunately the bulk create does not call the "save" of the class, the overwritten method is not used.
+            
+            for o in objs:
+                o.fullName =  o.tlmyVarType.fullName 
             
             lastid = TlmyVar.objects.latest('id').id
             bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)

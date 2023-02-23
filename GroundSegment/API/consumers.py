@@ -108,18 +108,33 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
       
   async def aOnNewtlmy(self, event):
     #print("####ON NEW TLMY###>>>>ROOM NAME: ", self.room_name)
+    #async django support #python -m pip install -U Django => update to python 4.1 for async support
     try:      
       lastid = event["lastid"]
       tlmyVars = []
       updatedTlmyVars = []
       async for tvt in self.ws.subscribedTlmyVar.all().values_list('tlmyVarType__id', flat=True):
         tlmyVars.append(tvt)
-      async for tv in  TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','UnixTimeStamp','created', 'fullName'):
-        updatedTlmyVars.append({'id':tv[0],'code':tv[1],'calSValue':tv[2],'UnixTimeStamp':tv[3],'created':tv[4].isoformat(), 'fullName':tv[5]})
-      #serialize data
-      updatedTlmyVars = json.dumps(updatedTlmyVars)
-      #print(updatedTlmyVars)
-      await self.send(updatedTlmyVars)
+
+      if (len(tlmyVars)!=0):
+        dt = timezone.now()
+        async for tv in  TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','UnixTimeStamp','created', 'fullName'):
+          updatedTlmyVars.append(
+            {'id':tv[0],
+            'code':tv[1],
+            'calSValue':tv[2],
+            'UnixTimeStamp':tv[3],
+            'created': tv[4].isoformat(),#dt.isoformat(),# 
+            'fullName':tv[5]})
+        #serialize data
+        if(len(updatedTlmyVars)!=0):
+          updatedTlmyVars = json.dumps(updatedTlmyVars)
+          #print(updatedTlmyVars)
+          await self.send(updatedTlmyVars)
+        else:
+          print("Sin variables que enviar")
+      else:
+        print("No se encontraron tipos de variables subscritas")
     except Exception as ex:
       print(ex)
     

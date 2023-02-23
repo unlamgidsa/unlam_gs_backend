@@ -2,10 +2,17 @@
 
 from django.db import migrations, models
 
-#python -m pip install -U Django => update to python 4.1 for async support
+
 
 def fullname_update_v2(apps, schema_editor):
     #it could be replaced for a raw sql update
+    tvts = apps.get_model('Telemetry', 'TlmyVarType').objects.all().iterator(chunk_size=10000)
+    for tvt in tvts:
+        tvt.fullName = ''.join([tvt.satellite.code,'.',tvt.code])
+        tvt.save()
+
+
+
     tvts = apps.get_model('Telemetry', 'TlmyVar').objects.all().iterator(chunk_size=10000)
     for tv in tvts:
         tv.fullName = tv.tlmyVarType.fullName

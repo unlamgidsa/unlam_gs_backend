@@ -159,7 +159,7 @@ if hostname=="ubuntu-pablo" :
                     'PASSWORD': 'postgres',
                     'HOST':'192.168.1.2',
                     'PORT': '5432',
-                    'CONN_MAX_AGE': 600,
+                    'CONN_MAX_AGE': 100,
              },
         'production':{
                     'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -222,7 +222,7 @@ elif hostname=="DESKTOP-07H93MS":
             'PASSWORD': config.DB_PASSWORD,
             'HOST': 'localhost',
             'PORT': '5432',
-            'CONN_MAX_AGE': 600,
+            'CONN_MAX_AGE': 100,
         }
     }
 
