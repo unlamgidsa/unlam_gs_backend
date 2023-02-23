@@ -16,9 +16,8 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._i = 1    
-        self._lastdiff = 0
         self.total_clients = 2
+        self.last_pkt = timezone.now()
 
     def on_message(self, ws, message):
         
@@ -26,6 +25,7 @@ class Command(BaseCommand):
         #print("Recibido telemetria", message[0:10])
         
         rawmessage = message
+        dt = timezone.now()
         message = json.loads(message)
         if ("message" in message) and (message["message"]=="connection accepted") :
             print(rawmessage)
@@ -41,21 +41,20 @@ class Command(BaseCommand):
         else:
             #calcular la media de diferencia
             #print("Recibiendo algo", datetime.now())
-            seconds = 0
-            self._i += 1
-            dt = timezone.now()
-            for r in message:
-                seconds += (dt-datetime.fromisoformat(r["created"])).total_seconds()
-            #print("=>", len(rawmessage), "diffs:", seconds/len(message) )
-            self._lastdiff = seconds/len(message)
-            if (self._i % self.total_clients) == 0:
-                print("diffs=>", self._lastdiff)
 
-            
-        
-            
+            #En realidad se debe tomar solo el primer mensaje,
+            #el resto se encolan pero ese es problema del cliente, no del servidor
+            if (ws.isfirst):
+                if(message!=""):
+                    totalseconds = 0
+                    for r in message:
+                        totalseconds += (dt-datetime.fromisoformat(r["created"])).total_seconds()
+                    
+                    print("diffs=>", totalseconds/len(message))
+                else:
+                    print("Empty message")    
                 
-
+                
 
     def on_error(self, ws, error):
         print(error)
@@ -73,10 +72,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         #Que sea parametro
-        url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
+        url = "ws://127.0.0.1:8001/ws/RTTelemetry/"
         
 
-        total_clients           = 1
+        total_clients           = 10
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    
@@ -87,9 +86,11 @@ class Command(BaseCommand):
         self.sat_code           = "RTEmuSat" 
         self.tlmyList         = Satellite.objects.get(code=sat_code).tmlyVarType.all().values_list('code', flat=True)
 
-        
+        isfirst = True
         for i in range(total_clients):
             ws = websocket.WebSocketApp(url, on_message=self.on_message)
+            ws.isfirst = isfirst
+            isfirst = False
             ws.run_forever(dispatcher=rel)  
         rel.signal(2, rel.abort)  # Keyboard Interrupt  
         rel.dispatch()  
