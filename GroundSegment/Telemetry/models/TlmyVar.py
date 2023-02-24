@@ -58,14 +58,26 @@ class TlmyVarManager(models.Manager):
         try:
 
             #Unfortunately the bulk create does not call the "save" of the class, the overwritten method is not used.
-            
+            fullNames = []
             for o in objs:
-                o.fullName =  o.tlmyVarType.fullName 
+                o.fullName =  o.tlmyVarType.fullName
+                fullNames.append(o.fullName) 
             
             lastid = TlmyVar.objects.latest('id').id
+
+
+            subsTlmyVarTypesIds = SubscribedTlmyVar.objects.values_list('tlmyVarType', flat=True).distinct()
+            #Retonar los tipos que estan subscriptos
+            tlmyVarTypes = TlmyVarType.objects.filter(id__in=subsTlmyVarTypesIds, fullName__in=fullNames)
+            if len(tlmyVarTypes)>0:
+                for tvt in tlmyVarTypes:
+                    tvt.lastCalSValue   = o.calSValue
+                    tvt.lastTlmyVarId   = lastid
+                    tvt.lastUpdate      = timezone.now()
+                super().bulk_update(tlmyVarTypes, ['calSValue', 'lastid','lastUpdate'])
+
+                before_bulk_create.send(sender=self.__class__, lastid=lastid)
             bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)
-            before_bulk_create.send(sender=self.__class__, lastid=lastid)
-            
             #subsVars = SubscribedTlmyVar.objects.values_list('fullname', flat=True).distinct()
             #jsonObjs = self._dObjsToJson(objs, subsVars)
             #jsonObjs = serializers.serialize('json', list(objs), fields=('id','code','calSValue', 'UnixTimeStamp', 'created'))
@@ -118,7 +130,6 @@ class TlmyVarManager(models.Manager):
     def __del__(self):
         pass
         before_bulk_create.disconnect()
-       
 
 class TlmyVar(models.Model):
     

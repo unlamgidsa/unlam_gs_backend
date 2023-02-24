@@ -35,7 +35,11 @@ class Command(BaseCommand):
             if max>self.totalVars:
                 max = self.totalVars
             for i in range(max):
-                tlmSub = self.sat_code+"."+self.tlmyList[random.randrange(0, len(self.tlmyList))]
+                prob = 1.0
+                if(max>100):
+                    prob = 0.3
+
+                tlmSub = self.sat_code+"."+self.tlmyList[random.randrange(0, len(self.tlmyList)*0.3)]
                 #print("intento subscribir ", tlmSub)
                 ws.send("subscribe" +" "+tlmSub)
         else:
@@ -72,7 +76,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         #Que sea parametro
-        url = "ws://127.0.0.1:8001/ws/RTTelemetry/"
+        url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
         
 
         total_clients           = 10
