@@ -96,7 +96,7 @@ class Command(BaseCommand):
 
 
 
-        createNewTypes=False
+        createNewTypes=True
         
         if(createNewTypes):
             sat = self._init_database_(frm1Dic)

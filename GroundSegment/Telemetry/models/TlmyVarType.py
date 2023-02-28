@@ -21,7 +21,7 @@ from GroundSegment.models.SubSystem import SubSystem
 from GroundSegment.models.ModelDiffMixin import ModelDiffMixin
 from django.db import transaction
 from django.db import connection
-
+from django.utils import timezone
 
 class CType(models.Model):
     OTHER = -1
@@ -151,7 +151,6 @@ class TlmyVarType(models.Model):
     lastCalIValue = models.BigIntegerField(default=0)
     lastCalFValue = models.FloatField(default=0.0)
     lastCalBValue = models.BooleanField(default=False)
-    lastCalSValue = models.CharField('Valor como string de la variable de telemetria', default="No defined", max_length=128, help_text='Valor como string de la variable de telemetria', null=True)
     lastUpdate = models.DateTimeField('Indica cuando se escribio la variable', null=True)  #
     tstamp = models.DateTimeField('Indica la fecha hora del dato suministrada por el equipo', default=datetime.strptime("1976-10-30 12:00:00 +0000", '%Y-%m-%d %H:%M:%S %z'))     
     """
@@ -177,10 +176,13 @@ class TlmyVarType(models.Model):
     outlierminlimit = models.BigIntegerField("Min outlier value", null=False, default=0);
     fullName        = models.CharField('fullname', max_length=64, help_text='fullname', default="")
        
+    #For efficiency these values are only updated if the type is 
+    #subscribed to an active real time client.
     calSValue           = models.CharField('Valor como string de la variable de telemetria', null=True, max_length=128, help_text='Valor como string de la variable de telemetria')
     lastUpdate          = models.DateTimeField('Indica cuando se escribio la variable', null=True)  #
     UnixTimeStamp       = models.FloatField('variable timestamp',null=True)
     lastUpdateTlmyVarId = models.BigIntegerField('pk related tlmyvar', null=True)
+
 
     def __str__(self):
         return self.code + ", sat: " + self.satellite.code

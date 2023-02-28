@@ -16,9 +16,8 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._i = 1    
-        self._lastdiff = 0
         self.total_clients = 2
+        self.last_pkt = timezone.now()
 
     def on_message(self, ws, message):
         
@@ -26,6 +25,7 @@ class Command(BaseCommand):
         #print("Recibido telemetria", message[0:10])
         
         rawmessage = message
+        dt = timezone.now()
         message = json.loads(message)
         if ("message" in message) and (message["message"]=="connection accepted") :
             print(rawmessage)
@@ -35,27 +35,30 @@ class Command(BaseCommand):
             if max>self.totalVars:
                 max = self.totalVars
             for i in range(max):
-                tlmSub = self.sat_code+"."+self.tlmyList[random.randrange(0, len(self.tlmyList))]
+                prob = 1.0
+                if(max>100):
+                    prob = 0.3
+
+                tlmSub = self.sat_code+"."+self.tlmyList[random.randrange(0, len(self.tlmyList)*0.3)]
                 #print("intento subscribir ", tlmSub)
                 ws.send("subscribe" +" "+tlmSub)
         else:
             #calcular la media de diferencia
             #print("Recibiendo algo", datetime.now())
-            seconds = 0
-            self._i += 1
-            dt = timezone.now()
-            for r in message:
-                seconds += (dt-datetime.fromisoformat(r["created"])).total_seconds()
-            #print("=>", len(rawmessage), "diffs:", seconds/len(message) )
-            self._lastdiff = seconds/len(message)
-            if (self._i % self.total_clients) == 0:
-                print("diffs=>", self._lastdiff)
 
-            
-        
-            
+            #En realidad se debe tomar solo el primer mensaje,
+            #el resto se encolan pero ese es problema del cliente, no del servidor
+            if (ws.isfirst):
+                if(message!=""):
+                    totalseconds = 0
+                    for r in message:
+                        totalseconds += (dt-datetime.fromisoformat(r["created"])).total_seconds()
+                    
+                    print("diffs=>", totalseconds/len(message))
+                else:
+                    print("Empty message")    
                 
-
+                
 
     def on_error(self, ws, error):
         print(error)
@@ -87,9 +90,11 @@ class Command(BaseCommand):
         self.sat_code           = "RTEmuSat" 
         self.tlmyList         = Satellite.objects.get(code=sat_code).tmlyVarType.all().values_list('code', flat=True)
 
-        
+        isfirst = True
         for i in range(total_clients):
             ws = websocket.WebSocketApp(url, on_message=self.on_message)
+            ws.isfirst = isfirst
+            isfirst = False
             ws.run_forever(dispatcher=rel)  
         rel.signal(2, rel.abort)  # Keyboard Interrupt  
         rel.dispatch()  

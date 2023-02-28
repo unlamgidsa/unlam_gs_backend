@@ -70,8 +70,6 @@ class TlmyVarManager(models.Manager):
             
 
             bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)
-            before_bulk_create.send(sender=self.__class__, lastid=lastid)
-            
             #subsVars = SubscribedTlmyVar.objects.values_list('fullname', flat=True).distinct()
             #jsonObjs = self._dObjsToJson(objs, subsVars)
             #jsonObjs = serializers.serialize('json', list(objs), fields=('id','code','calSValue', 'UnixTimeStamp', 'created'))
@@ -124,7 +122,6 @@ class TlmyVarManager(models.Manager):
     def __del__(self):
         pass
         before_bulk_create.disconnect()
-       
 
 class TlmyVar(models.Model):
     
