@@ -177,6 +177,10 @@ class TlmyVarType(models.Model):
     outlierminlimit = models.BigIntegerField("Min outlier value", null=False, default=0);
     fullName        = models.CharField('fullname', max_length=64, help_text='fullname', default="")
        
+    calSValue           = models.CharField('Valor como string de la variable de telemetria', null=True, max_length=128, help_text='Valor como string de la variable de telemetria')
+    lastUpdate          = models.DateTimeField('Indica cuando se escribio la variable', null=True)  #
+    UnixTimeStamp       = models.FloatField('variable timestamp',null=True)
+    lastUpdateTlmyVarId = models.BigIntegerField('pk related tlmyvar', null=True)
 
     def __str__(self):
         return self.code + ", sat: " + self.satellite.code

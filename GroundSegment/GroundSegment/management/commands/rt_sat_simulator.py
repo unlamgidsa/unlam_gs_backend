@@ -86,7 +86,7 @@ class Command(BaseCommand):
         #Remplazar hardcode por parametro
         SLEEP_TIME      = 20
         NB_ITERATIONS   = 100
-        TOTAL_VARS      = 10
+        TOTAL_VARS      = 7500
         
         for i in range(TOTAL_VARS):
             if(i%2==0):

@@ -56,8 +56,19 @@ class TlmyVarManager(models.Manager):
         #Pasar a asincrono para informar en tiempo totalmente real  
         #objs es lista de objetos django, convierto a objetos planos
         try:
-            
             lastid = TlmyVar.objects.latest('id').id
+            varTypes = []
+            #update tlmyVarType
+            for o in objs:
+                o.tlmyVarType.calSValue                 = o.calSValue
+                o.tlmyVarType.lastUpdate                = timezone.now()
+                o.tlmyVarType.UnixTimeStamp             = o.UnixTimeStamp
+                o.tlmyVarType.lastUpdateTlmyVarId       = lastid
+                varTypes.append(o.tlmyVarType)
+
+            TlmyVarType.objects.bulk_update(varTypes, ['calSValue','lastUpdate','UnixTimeStamp','lastUpdateTlmyVarId'])     
+            
+
             bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)
             before_bulk_create.send(sender=self.__class__, lastid=lastid)
             
