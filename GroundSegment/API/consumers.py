@@ -120,10 +120,10 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
         tlmyVars.append(tvt)
       
       if byTlmyVarType==True:
-        async for tv in TlmyVarType.objects.filter(id__in=tlmyVars, lastUpdateTlmyVarId__gt=lastid).values_list('id','code','calSValue','UnixTimeStamp','lastUpdate', 'fullName'):
+        async for tv in TlmyVarType.objects.afilter(id__in=tlmyVars, lastUpdateTlmyVarId__gt=lastid).values_list('id','code','calSValue','UnixTimeStamp','lastUpdate', 'fullName'):
           updatedTlmyVars.append({'id':tv[0],'code':tv[1],'calSValue':tv[2],'UnixTimeStamp':tv[3],'created':tv[4].isoformat(), 'fullName':tv[5]})
       else:
-        async for tv in  TlmyVar.objects.filter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','tstamp','lastUpdate', 'fullName'):
+        async for tv in  TlmyVar.objects.afilter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','tstamp','lastUpdate', 'fullName'):
           updatedTlmyVars.append({'id':tv[0],'code':tv[1],'calSValue':tv[2],'UnixTimeStamp':tv[3],'created':tv[4].isoformat(), 'fullName':tv[5]})
 
       #Mejorar serializacion

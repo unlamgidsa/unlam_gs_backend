@@ -76,10 +76,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         #Que sea parametro
-        url = "ws://127.0.0.1:8001/ws/RTTelemetry/"
+        url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
         
 
-        total_clients           = 300
+        total_clients           = 50
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    
