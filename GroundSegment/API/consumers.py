@@ -113,20 +113,34 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     byTlmyVarType = True
     try:
       start_time = time.time()  
-            
+      filteredTlmyVars = []      
       shareMemoryName = event["shareMemoryName"]
       sharedRTTlmyMemory = shared_memory.SharedMemory(name=shareMemoryName) 
       newtlmy = pickle.loads(sharedRTTlmyMemory.buf)
-      #Filtrar via set
-      self.tlmys
-      self.tlmys.intersection(set(tlmy))
+      for tlmy in newtlmy:
+        if tlmy.fullName in self.tlmys:
+          filteredTlmyVars.append(tlmy)
+
+      #We only serialize data to send, their are django object, not directly serializable
+      dFilteredTlmyVars = []
+      for o in filteredTlmyVars:
+            dFilteredTlmyVars.append({  'id':o.id,
+                                        'code':o.code, 
+                                        'calSValue':o.calSValue, 
+                                #"tstamp:": o.tstamp,
+                                        'UnixTimeStamp:':o.UnixTimeStamp,
+                                        'created':o.created.isoformat(),
+                                        'fullName': o.fullName})
+            
+
+      jsonFilteredTlmyVars = json.dumps(dFilteredTlmyVars)
+
       
-    
-
-
       diff = time.time()-start_time
-      print("newtlmy===>", diff)
-      #await self.send(updatedTlmyVars)
+      print("Amount of vars", len(dFilteredTlmyVars))
+      #print("Serialized=====>>>>>", jsonFilteredTlmyVars)
+      
+      await self.send(jsonFilteredTlmyVars)
     except Exception as ex:
       print(ex)
     

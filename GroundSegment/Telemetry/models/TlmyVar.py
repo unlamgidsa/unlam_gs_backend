@@ -65,25 +65,22 @@ class TlmyVarManager(models.Manager):
         #Pasar a asincrono para informar en tiempo totalmente real  
         #objs es lista de objetos django, convierto a objetos planos
         try:
-            lastid = TlmyVar.objects.latest('id').id
+            #lastid = TlmyVar.objects.latest('id').id
             
-            varTypes = []
+            
             #update tlmyVarType
             for o in objs:
-                o.tlmyVarType.calSValue                 = o.calSValue
-                o.tlmyVarType.lastUpdate                = timezone.now()
-                o.tlmyVarType.UnixTimeStamp             = o.UnixTimeStamp
-                o.tlmyVarType.lastUpdateTlmyVarId       = lastid
-                varTypes.append(o.tlmyVarType)
-
-            TlmyVarType.objects.bulk_update(varTypes, ['calSValue','lastUpdate','UnixTimeStamp','lastUpdateTlmyVarId'])     
+                o.fullName                              = o.tlmyVarType.fullName
+                o.created                               = timezone.now()
             
+            #TlmyVarType.objects.bulk_update(varTypes, ['calSValue','lastUpdate','UnixTimeStamp','lastUpdateTlmyVarId'])     
+
             if len(self.shmq)>self.MAX_SHAREDMEMORIES:
                 print("Eliminando vieja memoria compartida")
                 shm = self.shmq.pop()
                 shm.close()
                 shm.unlink()
-            binaryTlmyList =  pickle.dumps(objs) #Que fecha tiene?
+            binaryTlmyList =  pickle.dumps(objs) 
             shm = shared_memory.SharedMemory(create=True, size=len(binaryTlmyList))
             shm.buf[:] = binaryTlmyList
             self.shmq.append(shm)

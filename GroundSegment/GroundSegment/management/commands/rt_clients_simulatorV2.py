@@ -10,7 +10,9 @@ from Telemetry.models.TlmyVar import TlmyVar
 import websocket
 import time
 import rel
-
+import sys
+import asyncio
+#uvicorn asgi:application --port 8001 --host 0.0.0.0 --workers 4
 class Command(BaseCommand):
     help = 'Start the RTClientsSimulator'
 
@@ -76,10 +78,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         #Que sea parametro
-        url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
+        url = "ws://127.0.0.1:8001/ws/RTTelemetry/"
+        if sys.platform == 'win32':
+            loop = asyncio.ProactorEventLoop()
+            asyncio.set_event_loop(loop)
         
-
-        total_clients           = 3
+        total_clients           = 400
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    

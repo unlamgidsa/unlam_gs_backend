@@ -178,10 +178,10 @@ class TlmyVarType(models.Model):
        
     #For efficiency these values are only updated if the type is 
     #subscribed to an active real time client.
-    calSValue           = models.CharField('Valor como string de la variable de telemetria', null=True, max_length=128, help_text='Valor como string de la variable de telemetria')
-    lastUpdate          = models.DateTimeField('Indica cuando se escribio la variable', null=True)  #
-    UnixTimeStamp       = models.FloatField('variable timestamp',null=True)
-    lastUpdateTlmyVarId = models.BigIntegerField('pk related tlmyvar', null=True)
+    #calSValue           = models.CharField('Valor como string de la variable de telemetria', null=True, max_length=128, help_text='Valor como string de la variable de telemetria')
+    #lastUpdate          = models.DateTimeField('Indica cuando se escribio la variable', null=True)  #
+    #UnixTimeStamp       = models.FloatField('variable timestamp',null=True)
+    #lastUpdateTlmyVarId = models.BigIntegerField('pk related tlmyvar', null=True)
 
 
     def __str__(self):
