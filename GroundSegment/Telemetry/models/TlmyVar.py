@@ -24,7 +24,8 @@ from django.core import serializers
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from API.models import SubscribedTlmyVar
-
+from multiprocessing import shared_memory
+import pickle
 before_bulk_create = django.dispatch.Signal()
 
 
@@ -50,13 +51,22 @@ class PTlmyVar():
         self.fullName           = fullname
 """
 
-
+shm = None
 class TlmyVarManager(models.Manager):
+    
+    shmq = []
+    MAX_SHAREDMEMORIES = 5
+    #def __init__(self, **kwargs):
+         
+    #    super(TlmyVarManager, self).__init__(**kwargs)
+        
+
     def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
         #Pasar a asincrono para informar en tiempo totalmente real  
         #objs es lista de objetos django, convierto a objetos planos
         try:
             lastid = TlmyVar.objects.latest('id').id
+            
             varTypes = []
             #update tlmyVarType
             for o in objs:
@@ -68,7 +78,17 @@ class TlmyVarManager(models.Manager):
 
             TlmyVarType.objects.bulk_update(varTypes, ['calSValue','lastUpdate','UnixTimeStamp','lastUpdateTlmyVarId'])     
             
-
+            if len(self.shmq)>self.MAX_SHAREDMEMORIES:
+                print("Eliminando vieja memoria compartida")
+                shm = self.shmq.pop()
+                shm.close()
+                shm.unlink()
+            binaryTlmyList =  pickle.dumps(objs) #Que fecha tiene?
+            shm = shared_memory.SharedMemory(create=True, size=len(binaryTlmyList))
+            shm.buf[:] = binaryTlmyList
+            self.shmq.append(shm)
+            before_bulk_create.send(sender=self.__class__, shareMemoryName=shm.name)
+            
             bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)
             #subsVars = SubscribedTlmyVar.objects.values_list('fullname', flat=True).distinct()
             #jsonObjs = self._dObjsToJson(objs, subsVars)

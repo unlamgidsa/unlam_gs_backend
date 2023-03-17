@@ -14,6 +14,8 @@ from multiprocessing import Process
 from django.utils import timezone
 from asgiref.sync import async_to_sync
 import asyncio
+import pickle
+from multiprocessing import shared_memory
 
 #Usar para sincronizar llamadas a las base de datos
 #justificar porque esto se comparte via DB en lugar
@@ -112,25 +114,19 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     try:
       start_time = time.time()  
             
-      lastid = event["lastid"]
-      tlmyVars = []
-      updatedTlmyVars = []
+      shareMemoryName = event["shareMemoryName"]
+      sharedRTTlmyMemory = shared_memory.SharedMemory(name=shareMemoryName) 
+      newtlmy = pickle.loads(sharedRTTlmyMemory.buf)
+      #Filtrar via set
+      self.tlmys
+      self.tlmys.intersection(set(tlmy))
       
-      async for tvt in self.ws.subscribedTlmyVar.all().values_list('tlmyVarType__id', flat=True):
-        tlmyVars.append(tvt)
-      
-      if byTlmyVarType==True:
-        async for tv in TlmyVarType.objects.afilter(id__in=tlmyVars, lastUpdateTlmyVarId__gt=lastid).values_list('id','code','calSValue','UnixTimeStamp','lastUpdate', 'fullName'):
-          updatedTlmyVars.append({'id':tv[0],'code':tv[1],'calSValue':tv[2],'UnixTimeStamp':tv[3],'created':tv[4].isoformat(), 'fullName':tv[5]})
-      else:
-        async for tv in  TlmyVar.objects.afilter(id__gte=lastid, tlmyVarType__in=tlmyVars).values_list('id','code','calSValue','tstamp','lastUpdate', 'fullName'):
-          updatedTlmyVars.append({'id':tv[0],'code':tv[1],'calSValue':tv[2],'UnixTimeStamp':tv[3],'created':tv[4].isoformat(), 'fullName':tv[5]})
+    
 
-      #Mejorar serializacion
-      updatedTlmyVars = json.dumps(updatedTlmyVars)
+
       diff = time.time()-start_time
       print("newtlmy===>", diff)
-      await self.send(updatedTlmyVars)
+      #await self.send(updatedTlmyVars)
     except Exception as ex:
       print(ex)
     

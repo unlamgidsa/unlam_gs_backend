@@ -79,7 +79,7 @@ class Command(BaseCommand):
         url = "ws://127.0.0.1:8000/ws/RTTelemetry/"
         
 
-        total_clients           = 50
+        total_clients           = 3
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    

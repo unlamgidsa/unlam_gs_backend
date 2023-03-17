@@ -25,7 +25,7 @@ def TlmyVarHandler(sender, **kwargs):
             "RTTelemetry", #esto seria el room.group_name 
             {
                 "type": "aOnNewtlmy", #Function name!
-                "lastid":kwargs['lastid']             
+                "shareMemoryName":kwargs['shareMemoryName']             
                   
             }
         )
