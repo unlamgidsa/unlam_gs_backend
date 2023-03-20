@@ -83,7 +83,7 @@ class Command(BaseCommand):
             loop = asyncio.ProactorEventLoop()
             asyncio.set_event_loop(loop)
         
-        total_clients           = 400
+        total_clients           = 600
         simulation_seconds      = 500
         sleep                   = 20
         TOTALVARS               = 30    

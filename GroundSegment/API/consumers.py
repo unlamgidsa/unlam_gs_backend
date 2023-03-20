@@ -137,10 +137,16 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
       
       diff = time.time()-start_time
-      print("Amount of vars", len(dFilteredTlmyVars))
+      
       #print("Serialized=====>>>>>", jsonFilteredTlmyVars)
       
       await self.send(jsonFilteredTlmyVars)
+      print("Total time", diff, "Amount of vars", len(dFilteredTlmyVars))
+      try:
+        sharedRTTlmyMemory.close()
+      except Exception as ex:
+        print("Error al cerrar memoria compartida?", ex)
+        
     except Exception as ex:
       print(ex)
     
