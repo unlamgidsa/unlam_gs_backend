@@ -14,8 +14,8 @@ from multiprocessing import Process
 from django.utils import timezone
 from asgiref.sync import async_to_sync
 import asyncio
-import pickle
 from multiprocessing import shared_memory
+import orjson
 
 #Usar para sincronizar llamadas a las base de datos
 #justificar porque esto se comparte via DB en lugar
@@ -28,6 +28,10 @@ from Telemetry.models.TlmyVarType import TlmyVarType
 import os
 
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+
+
+#Anotaciones para paper, picke demora
+#el envio por socket no demora.
 
 class AsyncTlmyConsumer(AsyncWebsocketConsumer):
 
@@ -110,45 +114,42 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
       
   async def aOnNewtlmy(self, event):
     #print("####ON NEW TLMY###>>>>ROOM NAME: ", self.room_name)
-    byTlmyVarType = True
     try:
-      start_time = time.time()  
+      #total_start_time = time.time()
       filteredTlmyVars = []      
-      shareMemoryName = event["shareMemoryName"]
-      sharedRTTlmyMemory = shared_memory.SharedMemory(name=shareMemoryName) 
-      newtlmy = pickle.loads(sharedRTTlmyMemory.buf)
-      for tlmy in newtlmy:
-        if tlmy.fullName in self.tlmys:
-          filteredTlmyVars.append(tlmy)
+      try:
+        shareMemoryName = event["shareMemoryName"]
+        sharedRTTlmyMemory = shared_memory.SharedMemory(name=shareMemoryName) 
+      except Exception as ex:
+        print("Error al intentar recuperar memoria nombre",  event["shareMemoryName"], ex)
+          
+      #print("Memoria ", event["shareMemoryName"], "consumida por ",self.clientid)
+      #ntlmyVars = json.loads(jsonTlmyVars)
+      ntlmyVars = orjson.loads(sharedRTTlmyMemory.buf)
+      #picke se lleva 2 segundos
 
+      #Filtrado
+      for dtlmy in ntlmyVars:
+        if dtlmy['fullName'] in self.tlmys:
+          filteredTlmyVars.append(dtlmy)
+      
+
+      #Replace by set...
+      
       #We only serialize data to send, their are django object, not directly serializable
-      dFilteredTlmyVars = []
-      for o in filteredTlmyVars:
-            dFilteredTlmyVars.append({  'id':o.id,
-                                        'code':o.code, 
-                                        'calSValue':o.calSValue, 
-                                #"tstamp:": o.tstamp,
-                                        'UnixTimeStamp:':o.UnixTimeStamp,
-                                        'created':o.created.isoformat(),
-                                        'fullName': o.fullName})
-            
+      
+      jsonFilteredTlmyVars = orjson.dumps(filteredTlmyVars)
+      await self.send(jsonFilteredTlmyVars.decode('UTF-8'))
+      #diff = time.time()-total_start_time
+      #print("Tiempo total, filtrado, serializado y enviado", diff, "Amount of vars", len(filteredTlmyVars))
 
-      jsonFilteredTlmyVars = json.dumps(dFilteredTlmyVars)
-
-      
-      diff = time.time()-start_time
-      
-      #print("Serialized=====>>>>>", jsonFilteredTlmyVars)
-      
-      await self.send(jsonFilteredTlmyVars)
-      print("Total time", diff, "Amount of vars", len(dFilteredTlmyVars))
       try:
         sharedRTTlmyMemory.close()
       except Exception as ex:
         print("Error al cerrar memoria compartida?", ex)
         
     except Exception as ex:
-      print(ex)
+      print("Exc on aOnNewtlmy", ex)
     
   async def receive(self, text_data):
     # WebsocketConsumer.receive(self, text_data=text_data, bytes_data=bytes_data)
@@ -163,12 +164,16 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
     #TODO: Controlar que sea comando valido y variable de telemetria real 
     if(cmd=="subscribe"):
       if not var in self.tlmys:
-        print("Se subscribe var", var)
         self.tlmys.add(var) 
         #TODO: Revisar si conviene doble implementacion, tener en memoria y 
         #en base a donde esta subscripto
         await self.addSubscrivedTlmyVar(var)
         #¿Avisar al grupo de que hay nuevas telemetrias o es muy complejo?
+      
+        if((len(self.tlmys)%30)==0):
+            print("Variables en cliente", len(self.tlmys))
+        
+      
       else:
         print("Var ya existente", var)
 
@@ -183,7 +188,7 @@ class AsyncTlmyConsumer(AsyncWebsocketConsumer):
       print('Unknown command')
       response_text = 'Unknown command'
     
-    self.send(json.dumps({"type":"response", "value":response_text}))
+    await self.send(json.dumps({"type":"response", "value":response_text}))
     
     #val = json.loads(text_data)["value"]
 

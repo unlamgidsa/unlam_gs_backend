@@ -34,32 +34,32 @@ class Command(BaseCommand):
             print("Conexion aceptada, subscribo hasta 30 variables")
             #subscribir todo
             max = len(self.tlmyList)
-            if max>self.totalVars:
+            if max>self.totalVars: #tipicamente 30
                 max = self.totalVars
+            
             for i in range(max):
-                prob = 1.0
-                if(max>100):
-                    prob = 0.3
-
-                tlmSub = self.sat_code+"."+self.tlmyList[random.randrange(0, len(self.tlmyList)*0.3)]
+                tlmSub = self.sat_code+"."+self.tlmyList[random.randrange(0, len(self.tlmyList))]
                 #print("intento subscribir ", tlmSub)
                 ws.send("subscribe" +" "+tlmSub)
+
+
         else:
             #calcular la media de diferencia
-            #print("Recibiendo algo", datetime.now())
-
+            
             #En realidad se debe tomar solo el primer mensaje,
             #el resto se encolan pero ese es problema del cliente, no del servidor
-            if (ws.isfirst):
-                if(message!=""):
+            if(message!=""):
+                
+                #print("Recibiendo algo concreto", datetime.now(), "tamanio", len(message))
+                if ws.selected:
                     totalseconds = 0
                     for r in message:
                         totalseconds += (dt-datetime.fromisoformat(r["created"])).total_seconds()
                     
                     print("diffs=>", totalseconds/len(message))
-                else:
-                    print("Empty message")    
-                
+            else:
+                print("Empty message")    
+            
                 
 
     def on_error(self, ws, error):
@@ -90,15 +90,17 @@ class Command(BaseCommand):
         sat_code                = "RTEmuSat"
         self.total_clients      = total_clients-1
         
-        self.totalVars          =        TOTALVARS
+        self.totalVars          =  TOTALVARS
         self.sat_code           = "RTEmuSat" 
         self.tlmyList         = Satellite.objects.get(code=sat_code).tmlyVarType.all().values_list('code', flat=True)
 
-        isfirst = True
         for i in range(total_clients):
             ws = websocket.WebSocketApp(url, on_message=self.on_message)
-            ws.isfirst = isfirst
-            isfirst = False
+            ws.selected = False
+            #Tomo uno random, el de la mitad para medir demoras
+            if i==(total_clients//2):
+                ws.selected = True
+ 
             ws.run_forever(dispatcher=rel)  
         rel.signal(2, rel.abort)  # Keyboard Interrupt  
         rel.dispatch()  

@@ -25,7 +25,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from API.models import SubscribedTlmyVar
 from multiprocessing import shared_memory
-import pickle
+import orjson
+
 before_bulk_create = django.dispatch.Signal()
 
 
@@ -55,7 +56,7 @@ shm = None
 class TlmyVarManager(models.Manager):
     
     shmq = []
-    MAX_SHAREDMEMORIES = 5
+    MAX_SHAREDMEMORIES = 10
     #def __init__(self, **kwargs):
          
     #    super(TlmyVarManager, self).__init__(**kwargs)
@@ -66,27 +67,40 @@ class TlmyVarManager(models.Manager):
         #objs es lista de objetos django, convierto a objetos planos
         try:
             #lastid = TlmyVar.objects.latest('id').id
-            
-            
+            ntlmyvars = []
+            ts = timezone.now()
             #update tlmyVarType
+            
+            #Transferir lo minimo, 'id','code','calSValue','UnixTimeStamp','created','fullName'
+
             for o in objs:
                 o.fullName                              = o.tlmyVarType.fullName
-                o.created                               = timezone.now()
-            
-            #TlmyVarType.objects.bulk_update(varTypes, ['calSValue','lastUpdate','UnixTimeStamp','lastUpdateTlmyVarId'])     
-
-            if len(self.shmq)>self.MAX_SHAREDMEMORIES:
-                print("Eliminando vieja memoria compartida")
-                shm = self.shmq.pop()
-                shm.close()
-                shm.unlink()
-            binaryTlmyList =  pickle.dumps(objs) 
-            shm = shared_memory.SharedMemory(create=True, size=len(binaryTlmyList))
-            shm.buf[:] = binaryTlmyList
+                o.created                               = ts
+                ntlmyvars.append({  'id':o.id,
+                                    'code':o.code, 
+                                    'calSValue':o.calSValue, 
+                                #"tstamp:": o.tstamp,
+                                    'UnixTimeStamp:':o.UnixTimeStamp,
+                                    'created':o.created.isoformat(),
+                                    'fullName': o.fullName})
+            jsonTlmyVars = orjson.dumps(ntlmyvars)
+            #jsonTlmyVars = json.dumps(ntlmyvars)
+            #desbinarizar via picke parecer ser muy caro, se comparte serializado.
+            shm = shared_memory.SharedMemory(create=True, size=len(jsonTlmyVars))
+            shm.buf[:] = jsonTlmyVars
             self.shmq.append(shm)
+            print("Compartiendo memoria: ", shm.name)
             before_bulk_create.send(sender=self.__class__, shareMemoryName=shm.name)
             
             bcr = super().bulk_create(objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts)
+            
+            if len(self.shmq)>self.MAX_SHAREDMEMORIES:
+                
+                shm = self.shmq.pop(0)
+                print("Eliminando vieja memoria compartida, eliminando: ", shm.name)
+                shm.close()
+                shm.unlink()
+            
             #subsVars = SubscribedTlmyVar.objects.values_list('fullname', flat=True).distinct()
             #jsonObjs = self._dObjsToJson(objs, subsVars)
             #jsonObjs = serializers.serialize('json', list(objs), fields=('id','code','calSValue', 'UnixTimeStamp', 'created'))
@@ -174,9 +188,9 @@ class TlmyVar(models.Model):
         #]
         
         unique_together = ('tlmyVarType', 'tstamp',)
-        
-    
 
+    def __eq__(self, another):
+        return self.id == another.id
 
     def getValue(self):
         #Retorna el valor en funcion del tipo
