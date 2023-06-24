@@ -189,9 +189,10 @@ class TlmyVar(models.Model):
         
         unique_together = ('tlmyVarType', 'tstamp',)
 
+    """
     def __eq__(self, another):
         return self.id == another.id
-
+    """
     def getValue(self):
         #Retorna el valor en funcion del tipo
         #Comenzar a usar type
