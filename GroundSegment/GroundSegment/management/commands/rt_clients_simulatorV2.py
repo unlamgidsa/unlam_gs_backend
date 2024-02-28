@@ -83,10 +83,10 @@ class Command(BaseCommand):
             loop = asyncio.ProactorEventLoop()
             asyncio.set_event_loop(loop)
         
-        total_clients           = 10
+        total_clients           = 5
         simulation_seconds      = 500
         sleep                   = 20
-        TOTALVARS               = 30    
+        TOTALVARS               = 10    
         sat_code                = "RTEmuSat"
         self.total_clients      = total_clients-1
         
